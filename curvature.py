@@ -10,20 +10,18 @@ def sparse_mult(mat,C):
     """returns an efficient multiplication of mat by the transfer matrix.
     Runs in quadratic time.
     """
-    prod=np.zeros((len(C)/2,len(C)/2),dtype=float)
-    for i in range(len(C)/2):
-        for j in range(len(C)/2):
-            prod[i,j]=mat[i,(2*j)%(len(C)/2)]*C[2*j]
-            prod[i,j]+=mat[i,(2*j+1)%(len(C)/2)]*C[2*j+1]
-            prod[i,j]/=C[2*j]+C[2*j+1]
+    prod=np.zeros((len(C),len(C)),dtype=float)
+    for i in range(len(C)):
+        for j in range(len(C)):
+            prod[i,j]=mat[i,(2*j)%len(C)]*C[(2*j)%len(C)]
+            prod[i,j]+=mat[i,(2*j+1)%len(C)]*C[(2*j+1)%len(C)]
+            prod[i,j]/=C[(2*j)%len(C)]+C[(2*j+1)%len(C)]
     return prod
-    
 
-def curvature(C,ERROR=1.0e-14):
-    """Computes, via a Markov chain, the curvature tensor
-    for constant plaquettes up to some prescribed error."""
-    #compute the sequence (M**i) until convergence
-    powerseq=[np.eye(len(C)/2)]
+def Markov_powers(C,ERROR=1.0e-14):
+    """Computes the powers of the Markov chain
+    for constant plaquettes"""
+    powerseq=[np.eye(len(C))]
     converged=False
     while not converged:
         current=powerseq[-1]
@@ -36,16 +34,23 @@ def curvature(C,ERROR=1.0e-14):
             converged=True
         print dist
     print "Markov chain convergence after",len(powerseq),"steps"
+    return powerseq
+
+def curvature(C,ERROR=1.0e-14):
+    """Computes, via a Markov chain, the curvature tensor
+    for constant plaquettes up to some prescribed error."""
+    #compute the sequence (M**i) until convergence
+    powerseq=Markov_powers(C,ERROR)
     #the lines of the last matrix are the equilibium measure
-    eq_m=new.T[0]
+    eq_m=powerseq[-1][1]
     print "Equilibrium measure: ", eq_m
-    G=np.zeros((len(C)/2,len(C)/2),dtype=float)
-    for i in range(len(C)/2):
-        for j in range(len(C)/2):
+    G=np.zeros((len(C),len(C)),dtype=float)
+    M=powerseq[1]
+    for i in range(len(C)):
+        for j in range(len(C)):
             for k in range(len(powerseq)):
                 current=powerseq[k]
                 G[i,j]+=eq_m[j]*(current[i,j]-eq_m[i])
-            for k in range(len(powerseq)-1):
-                current=powerseq[k+1]
-                G[i,j]+=eq_m[i]*(current[j,i]-eq_m[j])
+                if k !=0:
+                    G[i,j]+=eq_m[i]*(current[j,i]-eq_m[j])
     return G
