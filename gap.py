@@ -25,8 +25,9 @@ def chain(d=4):
     #creates the transition matrix of a Markov chain with random plaquette weights, then prints its spectral gap
     #random weights away from zero
     C=[]
-    for k in range(2**d):
+    for k in range(2**d-1):
         C.append(random.random()+0.1)
+    C.append(0.)
     #the transition matrix
     M=np.zeros((2**(d-1),2**(d-1)))
     for i in range(2**(d-1)):

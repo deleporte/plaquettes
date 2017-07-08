@@ -1,6 +1,9 @@
 import numpy as np
 
 def generate_C(d,m=1,M=2):
+    """
+    Generates a bunch of randomly chosen coefficients, far from zero
+    """
     C=[]
     for k in range(2**d):
         C.append(random.random()*(M-m)+m)
@@ -32,7 +35,7 @@ def Markov_powers(C,ERROR=1.0e-14):
             dist+=abs(new[k,0]-new[k,1])
         if dist<ERROR:
             converged=True
-        print dist
+        #print dist
     print "Markov chain convergence after",len(powerseq),"steps"
     return powerseq
 
@@ -42,7 +45,7 @@ def curvature(C,ERROR=1.0e-14):
     #compute the sequence (M**i) until convergence
     powerseq=Markov_powers(C,ERROR)
     #the lines of the last matrix are the equilibium measure
-    eq_m=powerseq[-1][1]
+    eq_m=powerseq[-1].T[1]
     print "Equilibrium measure: ", eq_m
     G=np.zeros((len(C),len(C)),dtype=float)
     M=powerseq[1]

@@ -1,35 +1,5 @@
 # a tentative basis
 
-def testbasis(d=2):
-    if d<=2:
-        basis=np.array([[1,1],[1,-1]])
-    else:
-        basis=np.zeros((2**(d-1),2**(d-1)),dtype=float)
-    for k in range(2**(d-2)-1):
-        basis[k,k]+=1.
-        basis[k,2**(d-2)+k]+=1.
-        basis[k,2*k]+=-1.
-        basis[k,2*k+1]+=-1.
-        basis[2**(d-2)+k,k]+=1.
-    basis[2**(d-2)-1]=1.
-    basis[-1,-1]=1.
-    return basis
-
-def blindsearch(G,d):
-    zeros=[]
-    for k in range(3**(2**(d-1))):
-        v=[]
-        kcopy=k
-        for i in range(2**(d-1)):
-            if kcopy%3==2:
-                v.append(-1.)
-            else:
-                v.append(float(kcopy%3))
-            kcopy=kcopy/3
-        if sum(abs(np.dot(v,G)))<1.0e-10:
-            print v
-    return 0
-
 def lshift(c,d):
     return (2*c)%(2**d)+c/(2**(d-1))
 
