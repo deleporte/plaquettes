@@ -1,6 +1,9 @@
 def double_transfer_powers(C,kmax):
     """It should return a matrix of size len(C)*(len(C)**2).
-    dT_k[a,b] is the probability, if we are in a at 0, to be in b at k-d."""
+    dT_k[a,b] is the probability, if we are in a at 0, to be in b at k-d.
+
+    This is slow and should completely be done in C++.
+    """
     Tfor=np.zeros((len(C),len(C)),dtype=float)
     Tbac=np.zeros((len(C),len(C)),dtype=float)
     for i in range(len(C)):
