@@ -1,4 +1,4 @@
-// -*- compile-command: "gcc main.c curvature.c dynamics.c -lm -o myprog" -*-
+// -*- compile-command: "gcc main.c curvature.c dynamics.c -lm -lc -o myprog" -*-
 
 #define SIZE 2
 

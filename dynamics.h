@@ -6,3 +6,7 @@ struct lkmat{
 };
 
 lkmat* dbMarkovPowers(double*, int, int);
+
+double* force(double*, double*,double*, int, double*, int);
+
+void oneStep(double*, double*, int, double*, int, double){

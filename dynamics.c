@@ -21,7 +21,8 @@ lkmat* dbMarkovPowers(double* C, int dim, int kmax){
   lkmat* T=NULL;
   lkmat* curr=NULL;
   double* dtemp;
-  int i,j,k,l,m,n;
+  int i,j,k;
+
   int d=(int)(log(dim+0.9)/log(2));
   Ttemp=malloc(d*sizeof(double*));
   
@@ -58,7 +59,7 @@ lkmat* dbMarkovPowers(double* C, int dim, int kmax){
     curr=curr->next;
   }
   curr->next=NULL;
-  dtemp=C+dim/2;
+  dtemp=C+dim/2*sizeof(double);
   for(i=0; i<dim; i++){
     Ttemp[0][i]=C[i]/(C[i/2]+dtemp[i/2]);
   }
@@ -80,3 +81,85 @@ lkmat* dbMarkovPowers(double* C, int dim, int kmax){
   free(Ttemp);
   return T;
 }
+
+double* force(double* Cr, double* Ci, double* C, int Cdim, double* ham, int hamdim){
+  lkmat* T=NULL;
+  lkmat* curr;
+  double* gr=NULL;
+  double* gi=NULL;
+  double* Fr=NULL;
+  double* Fi=NULL;
+  int i,j,k,oj,js,ojs;
+  int dimg=Cdim*Cdim*hamdim/4;
+  int d=log(Cdim+0.9)/log(2);
+  double tr,ti;
+
+  //computing the function whose expectancy we take
+  gr=malloc(dimg*sizeof(double));
+  gi=malloc(dimg*sizeof(double));
+  for(i=0; i<dimg; i++){
+    gr[i]=1;
+    gi[i]=0;
+  }
+  for(i=0; i<Cdim+sqrt(hamdim)-2; i++){
+    for(j=0; j<dimg; j++){
+      oj=j-(j/(Cdim/2))%(int)sqrt(hamdim)*Cdim/2;
+      oj+=(j/(dimg/(int)sqrt(hamdim)))*Cdim/2;
+      js=(j/(int)pow(2,j))%Cdim;
+      ojs=(oj/(int)pow(2,j))%Cdim;
+      tr=(Cr[ojs]*Cr[js]+Ci[ojs]*Ci[js])*gr[j];
+      tr-=(Ci[ojs]*Cr[js]-Cr[ojs]*Ci[js])*gi[j];
+      tr/=Cr[js]*Cr[js]+Ci[js]*Ci[js];
+      ti=(Cr[ojs]*Cr[js]+Ci[ojs]*Ci[js])*gi[j];
+      ti+=(Ci[ojs]*Cr[js]-Cr[ojs]*Ci[js])*gr[j];
+      ti/=Cr[js]*Cr[js]+Ci[js]*Ci[js];
+      gr[j]=tr;
+      gi[j]=tr;
+    }
+  }
+  
+  
+  T=dbMarkovPowers(C,Cdim,50);
+
+
+  //taking expectancy
+  Fr=malloc(Cdim*2*sizeof(double));
+  Fi=Fr+Cdim*sizeof(double);
+  for(i=0; i<Cdim; i++){
+    Fr[i]=0;
+    Fi[i]=0;
+  }
+  curr=T;
+  while(curr->next != NULL){
+    curr=curr->next;
+  }
+  while(curr->prev != NULL){
+    for(i=0; i<Cdim; i++){
+      for(j=0; j<dimg; j++){
+	Fr[i]+=gr[j]*curr->data[i*Cdim*Cdim+j%(Cdim*Cdim)]; //hamdim=4
+	Fi[i]+=gi[j]*curr->data[i*Cdim*Cdim+j%(Cdim*Cdim)];
+      }
+    }
+    curr=curr->prev;
+  }
+  
+  //freeing lkmat
+  curr=T;
+  while(curr->next != NULL){
+    curr=curr->next;
+  }
+  while(curr->prev != NULL){
+    curr=curr->prev;
+    free(curr->next->data);
+    free(curr->next);
+  }
+  free(curr->data);
+  free(curr);
+  free(gr);
+  free(gi);
+  return Fr;
+}
+
+
+void oneStep(double* Cr, double* C, int Cdim, double* ham, int hamdim, double step){
+}  
