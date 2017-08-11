@@ -1,6 +1,6 @@
 import numpy as np
 
-def generate_C(d,m=1,M=2):
+def generate_C(d,m=0.1,M=1.1):
     """
     Generates a bunch of randomly chosen coefficients, far from zero
     """

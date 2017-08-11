@@ -64,10 +64,10 @@ double** Markov_powers(double* C, int dim, double error){
     }
     if (dist<error){
       converged=1;
-      printf("Markov chain converges after %d steps.\n", i);
+      //printf("Markov chain converges after %d steps.\n", i);
     }
     if (i==99){
-      printf("Warning: slow convergence.\n");
+      //printf("Warning: slow convergence.\n");
     }
   }
   for (j=i; j<100; j++){
@@ -112,7 +112,6 @@ double* curvature(double* C, int dim, double error){
 
   free(powerseq);
   free(eq_m);
-  printf("Curvature computed.\n");
   return G;
 }
 
@@ -132,74 +131,75 @@ double* fullBasis(int d){
   if(d==2){
     U[1]=sqrt(0.5);
     U[2]=-sqrt(0.5);
+    U[7]=1;
     U[8]=1;
-    U[9]=1;
+    U[13]=sqrt(0.5);
     U[14]=sqrt(0.5);
-    U[15]=sqrt(0.5);
     return U;
   }
-    
-  for(j=0; j<d-2; j++){
-    for(c=0; c<pow(2,j); c++){
-      for(k=0; k<d-2-j; k++){
-	for(l=0; l<d-2-j; l++){
-	  vect=pow(2,d-1)-pow(2,l+j+2)+c*pow(2,l+1)+pow(2,l)-1;
-	  val=sin(M_PI*(k+1)*(l+1)/(d-1-j));
-	  U[(line+k)*dim+(int)pow(2,d-1)+vect]+=val;
-	  U[(line+k)*dim+2*vect+1]-=val;
+  else{    
+    for(j=0; j<d-2; j++){
+      for(c=0; c<pow(2,j); c++){
+	for(k=0; k<d-2-j; k++){
+	  for(l=0; l<d-2-j; l++){
+	    vect=pow(2,d-1)-pow(2,l+j+2)+c*pow(2,l+1)+pow(2,l)-1;
+	    val=sin(M_PI*(k+1)*(l+1)/(d-1-j));
+	    U[(line+k)*dim+(int)pow(2,d-1)+vect]+=val;
+	    U[(line+k)*dim+2*vect+1]-=val;
+	  }
+	  norm=0;
+	  for(l=0; l<dim; l++){
+	    norm+=U[(line+k)*dim+l]*U[(line+k)*dim+l];
+	  }
+	  for(l=0; l<dim; l++){
+	    U[(line+k)*dim+l]/=sqrt(norm);
+	  }
 	}
-	norm=0;
-	for(l=0; l<dim; l++){
-	  norm+=U[(line+k)*dim+l]*U[(line+k)*dim+l];
-	}
-	for(l=0; l<dim; l++){
-	  U[(line+k)*dim+l]/=sqrt(norm);
-	}
+	line+=d-2-j;
       }
-      line+=d-2-j;
     }
+    for(k=0; k<d-1; k++){
+      for(l=0; l<d-1; l++){
+	vect=pow(2,d-1)-1-pow(2,l);
+	val=sin(M_PI*(k+1)*(l+1)/d);
+	U[(line+k)*dim+(int)pow(2,d-1)+vect]+=val;
+	U[(line+k)*dim+2*vect+1]-=val;
+      }
+      norm=0;
+      for(l=0; l<dim; l++){
+	norm+=U[(line+k)*dim+l]*U[(line+k)*dim+l];
+      }
+      for(l=0; l<dim; l++){
+	U[(line+k)*dim+l]/=sqrt(norm);
+      }
+    }
+    line+=d-1;
+    U[line*dim+(int)pow(2,d)-1]=1;
+    line+=1;
+    for(c=0; c<pow(2,d-2); c++){
+      U[(line+c)*dim+2*c]=1;
+    }
+    line+=pow(2,d-2);
+    for(c=0; c<pow(2,d-3); c++){
+      U[(line+c)*dim+2*c+(int)pow(2,d-1)]=sqrt(0.5);
+      U[(line+c)*dim+4*c+1]=sqrt(0.5);
+    }
+    line+=pow(2,d-3);
+    for(c=0; c<pow(2,d-3); c++){
+      vect=2*c+pow(2,(d-1))+pow(2,(d-2));
+      len=1;
+      while(vect>=pow(2,d-1)){
+	vect=(2*vect)%(int)pow(2,d)+vect/(int)pow(2,d-1);
+	len++;
+      }
+      vect=2*c+pow(2,(d-1))+pow(2,(d-2));
+      for(k=0; k<len; k++){
+	U[(line+c)*dim+vect]=1./sqrt(len);
+	vect=(2*vect)%(int)pow(2,d)+vect/(int)pow(2,d-1);
+      }
+    }
+    return U;
   }
-  for(k=0; k<d-1; k++){
-    for(l=0; l<d-1; l++){
-      vect=pow(2,d-1)-1-pow(2,l);
-      val=sin(M_PI*(k+1)*(l+1)/d);
-      U[(line+k)*dim+(int)pow(2,d-1)+vect]+=val;
-      U[(line+k)*dim+2*vect+1]-=val;
-    }
-    norm=0;
-    for(l=0; l<dim; l++){
-      norm+=U[(line+k)*dim+l]*U[(line+k)*dim+l];
-    }
-    for(l=0; l<dim; l++){
-      U[(line+k)*dim+l]/=sqrt(norm);
-    }
-  }
-  line+=d-1;
-  U[line*dim+(int)pow(2,d)-1]=1;
-  line+=1;
-  for(c=0; c<pow(2,d-2); c++){
-    U[(line+c)*dim+2*c]=1;
-  }
-  line+=pow(2,d-2);
-  for(c=0; c<pow(2,d-3); c++){
-    U[(line+c)*dim+2*c+(int)pow(2,d-1)]=sqrt(0.5);
-    U[(line+c)*dim+4*c+1]=sqrt(0.5);
-  }
-  line+=pow(2,d-3);
-  for(c=0; c<pow(2,d-3); c++){
-    vect=2*c+pow(2,(d-1))+pow(2,(d-2));
-    len=1;
-    while(vect>=pow(2,d-1)){
-      vect=(2*vect)%(int)pow(2,d)+vect/(int)pow(2,d-1);
-      len++;
-    }
-    vect=2*c+pow(2,(d-1))+pow(2,(d-2));
-    for(k=0; k<len; k++){
-      U[(line+c)*dim+vect]=1./sqrt(len);
-      vect=(2*vect)%(int)pow(2,d)+vect/(int)pow(2,d-1);
-    }
-  }
-  return U;
 }
 
 double* rotation(int d){
@@ -234,13 +234,12 @@ double* reducedCurvature(double* C, int dim, double error){
   V=rotation(d);
   U=fullBasis(d);
 
-  //fast multiplication of U and V requires transposition of V
   UV=malloc(dim*dim/2*sizeof(double));
   for(i=0; i<dim/2; i++){
     for(j=0; j<dim; j++){
-      UV[i*dim/2+j]=0;
+      UV[i*dim+j]=0;
       for(k=0; k<dim; k++){
-	UV[i*dim/2+j]+=U[(i+dim/2)*dim+k]*V[j*dim+k]; //V is symmetric
+	UV[i*dim+j]+=U[(i+dim/2)*dim+k]*V[j*dim+k]; //V is symmetric
       }
     }
   }
@@ -249,13 +248,9 @@ double* reducedCurvature(double* C, int dim, double error){
   UVG=malloc(dim*dim/2*sizeof(double));
   for(i=0; i<dim/2; i++){
     for(j=0; j<dim; j++){
-      UVG[i*dim/2+j]=0;
-    }
-  }
-  for(i=0; i<dim/2; i++){
-    for(j=0; j<dim; j++){
+      UVG[i*dim+j]=0;
       for(k=0; k<dim; k++){
-	UVG[i*dim/2+j]+=UV[i*dim/2+k]*G[j*dim+k]; //G is already transposed
+	UVG[i*dim+j]+=UV[i*dim+k]*G[j*dim+k]; //G is symmetric
       }
     }
   }
@@ -264,17 +259,13 @@ double* reducedCurvature(double* C, int dim, double error){
   for(i=0; i<dim/2; i++){
     for(j=0; j<dim/2; j++){
       Gred[i*dim/2+j]=0;
-    }
-  }
-  for(i=0; i<dim/2; i++){
-    for(j=0; j<dim/2; j++){
       for(k=0; k<dim; k++){
-	Gred[i*dim/2+j]+=UVG[i*dim/2+k]*UV[j*dim/2+k];
+	Gred[i*dim/2+j]+=UVG[i*dim+k]*UV[j*dim+k];
+	//UV[i*dim/2+l]*G[k*dim+l]*UV[j*dim/2+k]
       }
     }
   }
   free(UV);
   free(UVG);
-  printf("Reduced curvature computed.\n");
   return Gred;
 }
