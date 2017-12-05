@@ -1,7 +1,7 @@
 // -*- compile-command: "gcc main.c curvature.c dynamics.c gnuplot_i.c -lm -o myprog" -*-
 
 #define SIZE 2
-#define J 0.5
+#define J -0.9
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,20 +32,44 @@ int main(int argc, char* argv[]){
   gnuplot_set_ylabel(hr, "Values");
   
   ham=malloc(16*sizeof(double));
+  for(i=0; i<16; i++){
+    ham[i]=0;
+  }
+  //Ising with transverse field
+  /* ham[0]=J; */
+  /* ham[5]=-J; */
+  /* ham[10]=-J; */
+  /* ham[15]=J; */
+  /* ham[1]=(1-J)/2; */
+  /* ham[4]=(1-J)/2; */
+  /* ham[2]=(1-J)/2; */
+  /* ham[8]=(1-J)/2; */
+  /* ham[7]=(1-J)/2; */
+  /* ham[13]=(1-J)/2; */
+  /* ham[11]=(1-J)/2; */
+  /* ham[14]=(1-J)/2; */
+  //XXZ
   ham[0]=J;
   ham[5]=-J;
+  ham[6]=2;
+  ham[9]=2;
   ham[10]=-J;
   ham[15]=J;
-  ham[1]=(1-J)/2;
-  ham[4]=(1-J)/2;
-  ham[2]=(1-J)/2;
-  ham[8]=(1-J)/2;
-  ham[7]=(1-J)/2;
-  ham[13]=(1-J)/2;
-  ham[11]=(1-J)/2;
-  ham[14]=(1-J)/2;
+
+  //Curvature testing
+  /* C=generate_C(SIZE,0.1,1.1); */
+  /* for(i=0; i<pow(2,SIZE); i++){ */
+  /*   printf("C[%d]=%f\n",i,C[i]); */
+  /* } */
+  /* Gred=reducedCurvature(C,pow(2,SIZE),0.0000000000001); */
+  /* for(i=0; i<pow(2,SIZE-1); i++){ */
+  /*   for(j=0; j<pow(2,SIZE-1); j++){ */
+  /*     printf("G[%d,%d]=%f\n",i,j,Gred[i*(int)pow(2,SIZE-1)+j]); */
+  /*   } */
+  /* } */
+  /* free(C); */
+  /* free(Gred); */
   
-    
   C=generate_C(SIZE,0.1,1.1);
   Cr=malloc((int)pow(2,SIZE)*sizeof(double));
   Ci=malloc((int)pow(2,SIZE)*sizeof(double));
@@ -60,17 +84,19 @@ int main(int argc, char* argv[]){
   printf("Press any key to continue.\n");
   while(!getchar());
   for(j=0; j<1000; j++){
-    oneStep(Cr,Ci,(int)pow(2,SIZE),ham,16,0.01);
+    oneStep(Cr,Ci,(int)pow(2,SIZE),ham,16,0.01/(1+abs(J*J)));
     printf("At step %d: \n",j+1);
     for(i=0; i<pow(2,SIZE); i++){
       printf("C[%d]=%f+%f i\n",i,Cr[i],Ci[i]);
     }
+    printf("%lf\n", meanval(Cr,Ci,(int)pow(2,SIZE),ham,16));
     //plot
-    gnuplot_resetplot(hr);
-    gnuplot_cmd(hr, "set yrange [-3:3]");
-    gnuplot_plot_x(hr,Cr,(int)pow(2,SIZE),"Real part");
-    gnuplot_plot_x(hr,Ci,(int)pow(2,SIZE),"Imag part");
+    //gnuplot_resetplot(hr);
+    //gnuplot_cmd(hr, "set yrange [-3:3]");
+    //gnuplot_plot_x(hr,Cr,(int)pow(2,SIZE),"Real part");
+    //gnuplot_plot_x(hr,Ci,(int)pow(2,SIZE),"Imag part");
   }
+  printf("%lf\n", meanval(Cr,Ci,(int)pow(2,SIZE),ham,16));
   while(!getchar());
   free(Cr);
   free(Ci);

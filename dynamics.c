@@ -9,12 +9,15 @@
   __typeof__ (b) _b = (b); \
   _a > _b ? _a : _b; })
 
+#define DESCENT 1
+
 /* typedef struct lkmat lkmat; */
 /* struct lkmat{ */
 /*   double* data=NULL; */
 /*   lkmat* next=NULL; */
 /*   lkmat* prev=NULL; */
 /* }; */
+
 
 lkmat* dbMarkovPowers(double* C, int dim, int kmax){
   //As annoying as it might be we have to look at this array
@@ -124,6 +127,79 @@ lkmat* dbMarkovPowers(double* C, int dim, int kmax){
   return T;
 }
 
+double meanval(double* Cr, double* Ci, int Cdim, double* ham, int hamdim){
+  lkmat* T=NULL;
+  lkmat* curr;
+  double* gr=NULL;
+  double* Cnorm=NULL;
+  double* gi=NULL;
+  double E=0;
+  int i,j,k,oj,js,ojs;
+  int dimg=Cdim*Cdim*hamdim/4;
+  int d=log(Cdim+0.9)/log(2);
+  double tr,ti;
+
+  Cnorm=malloc(Cdim*sizeof(double));
+  for(i=0; i<Cdim; i++){
+    Cnorm[i]=Cr[i]*Cr[i]+Ci[i]*Ci[i];
+  }
+
+  gr=malloc(dimg*sizeof(double));
+  gi=malloc(dimg*sizeof(double));
+  for(i=0; i<dimg; i++){
+    gr[i]=ham[i/(dimg/(int)sqrt(hamdim))*(int)sqrt(hamdim)+(i/(Cdim/2))%(int)sqrt(hamdim)];
+    gi[i]=0;
+  }
+  for(i=0; i<Cdim+sqrt(hamdim)-1; i++){
+    for(j=0; j<dimg; j++){
+      oj=j-((j/(Cdim/2))%(int)sqrt(hamdim))*Cdim/2;
+      oj+=(j/(dimg/(int)sqrt(hamdim)))*Cdim/2;
+      js=(j/(int)pow(2,i))%Cdim;
+      ojs=(oj/(int)pow(2,i))%Cdim;
+      tr=(Cr[ojs]*Cr[js]+Ci[ojs]*Ci[js])*gr[j];
+      tr-=(Ci[ojs]*Cr[js]-Cr[ojs]*Ci[js])*gi[j];
+      tr/=Cnorm[js];
+      ti=(Cr[ojs]*Cr[js]+Ci[ojs]*Ci[js])*gi[j];
+      ti+=(Ci[ojs]*Cr[js]-Cr[ojs]*Ci[js])*gr[j];
+      ti/=Cnorm[js];
+      gr[j]=tr;
+      gi[j]=ti;
+    }
+  }
+  T=dbMarkovPowers(Cnorm,Cdim,50);
+  free(Cnorm);
+
+  curr=T;
+  while(curr->next != NULL){
+    curr=curr->next;
+  }
+  while(curr->prev != NULL){
+    for(i=0; i<Cdim; i++){
+      for(j=0; j<dimg; j++){
+	E+=gr[j]*curr->data[i*Cdim*Cdim+j%(Cdim*Cdim)]; //hamdim=4
+      }
+    }
+    curr=curr->prev;
+  }
+  //freeing lkmat
+  curr=T;
+  while(curr->next != NULL){
+    curr=curr->next;
+  }
+  while(curr->prev != NULL){
+    curr=curr->prev;
+    free(curr->next->data);
+    free(curr->next);
+  }
+  free(curr->data);
+  free(curr);
+  free(gr);
+  free(gi);
+  return E;
+}
+
+
+
 double* force(double* Cr, double* Ci, int Cdim, double* ham, int hamdim){
   lkmat* T=NULL;
   lkmat* curr;
@@ -210,8 +286,7 @@ void cholInv(double* Gred, int Gdim){
   //Cholesky decomposition
   for(i=0; i<Gdim; i++){
     if (Gred[i*(Gdim+1)]<=0){
-      printf("Warning: Gred not positive at %d\n",i);
-      printf("Value: %lf\n",Gred[i*(Gdim+1)]);
+      printf("Warning: Gred not definite positive.\n");
     }
     L[i*(Gdim+1)]=sqrt(Gred[i*(Gdim+1)]);
     for(j=1; j<Gdim-i; j++){
@@ -223,13 +298,12 @@ void cholInv(double* Gred, int Gdim){
       }
     }
   }
-
   //inverse of the L matrix
   Linv=malloc(Gdim*Gdim*sizeof(double));
   for(i=0; i<Gdim; i++){
     Linv[i*(Gdim+1)]=1/L[i*(Gdim+1)];
     for(j=1; j<Gdim-i; j++){
-      Linv[i*(Gdim+1)+j]=-L[i*(Gdim+1)+j]/L[i*(Gdim+1)]/L[j*(Gdim+1)];
+      Linv[i*(Gdim+1)+j]=-L[i*(Gdim+1)+j]/L[i*(Gdim+1)]/L[(i+j)*(Gdim+1)];
     }
   }
   free(L);
@@ -370,8 +444,14 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   Ctr=malloc(Cdim*sizeof(double));
   Cti=malloc(Cdim*sizeof(double));
   for(i=0; i<Cdim; i++){
-    Ctr[i]=Cr[i]*(1+step/2*k1[i+Cdim])+Ci[i]*step/2*k1[i];
-    Cti[i]=Ci[i]*(1+step/2*k1[i+Cdim])-Cr[i]*step/2*k1[i];
+    if(DESCENT){
+      Ctr[i]=Cr[i]*(1-step/2*k1[i])+Ci[i]*step/2*k1[i+Cdim];
+      Cti[i]=Ci[i]*(1-step/2*k1[i])-Cr[i]*step/2*k1[i+Cdim];
+    }
+    else{
+      Ctr[i]=Cr[i]*(1+step/2*k1[i+Cdim])+Ci[i]*step/2*k1[i];
+      Cti[i]=Ci[i]*(1+step/2*k1[i+Cdim])-Cr[i]*step/2*k1[i];
+    }
   }
   if(Ctr[0]!=Ctr[0]){
     printf("Nan error in position for k2.\n");
@@ -446,8 +526,14 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   Ctr=malloc(Cdim*sizeof(double));
   Cti=malloc(Cdim*sizeof(double));
   for(i=0; i<Cdim; i++){
-    Ctr[i]=Cr[i]*(1+step/2*k2[i+Cdim])+Ci[i]*step/2*k2[i];
-    Cti[i]=Ci[i]*(1+step/2*k2[i+Cdim])-Cr[i]*step/2*k2[i];
+    if(DESCENT){
+      Ctr[i]=Cr[i]*(1-step/2*k2[i])+Ci[i]*step/2*k2[i+Cdim];
+      Cti[i]=Ci[i]*(1-step/2*k2[i])-Cr[i]*step/2*k2[i+Cdim];
+    }
+    else{
+      Ctr[i]=Cr[i]*(1+step/2*k2[i+Cdim])+Ci[i]*step/2*k2[i];
+      Cti[i]=Ci[i]*(1+step/2*k2[i+Cdim])-Cr[i]*step/2*k2[i];
+    }
   }
   //III.2 Compute the reduced curvature and its projected inverse
   Cnorm=malloc(Cdim*sizeof(double));
@@ -518,8 +604,14 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   Ctr=malloc(Cdim*sizeof(double));
   Cti=malloc(Cdim*sizeof(double));
   for(i=0; i<Cdim; i++){
-    Ctr[i]=Cr[i]*(1+step*k3[i+Cdim])+Ci[i]*step*k3[i];
-    Cti[i]=Ci[i]*(1+step*k3[i+Cdim])-Cr[i]*step*k3[i];
+    if(DESCENT){
+      Ctr[i]=Cr[i]*(1-step*k3[i])+Ci[i]*step*k3[i+Cdim];
+      Cti[i]=Ci[i]*(1-step*k3[i])-Cr[i]*step*k3[i+Cdim];
+    }
+    else{
+      Ctr[i]=Cr[i]*(1+step*k3[i+Cdim])+Ci[i]*step*k3[i];
+      Cti[i]=Ci[i]*(1+step*k3[i+Cdim])-Cr[i]*step*k3[i];
+    }
   }
   //IIII.2 Compute the reduced curvature and its projected inverse
   Cnorm=malloc(Cdim*sizeof(double));
@@ -587,9 +679,14 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
 
   //V - Yield the final value
   for(i=0; i<Cdim; i++){
-    tvalr=Cr[i]*(1+step/6*(k1[i+Cdim]+2*k2[i+Cdim]+2*k3[i+Cdim]+k4[i+Cdim]))+Ci[i]*step/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
-    tvali=Ci[i]*(1+step/6*(k1[i+Cdim]+2*k2[i+Cdim]+2*k3[i+Cdim]+k4[i+Cdim]))-Cr[i]*step/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
-    
+    if(DESCENT){
+      tvalr=Cr[i]*(1-step/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]))+Ci[i]*step/6*(k1[i+Cdim]+2*k2[i+Cdim]+2*k3[i+Cdim]+k4[i+Cdim]);
+      tvali=Ci[i]*(1-step/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]))-Cr[i]*step/6*(k1[i+Cdim]+2*k2[i+Cdim]+2*k3[i+Cdim]+k4[i+Cdim]);
+    }
+    else{
+      tvalr=Cr[i]*(1+step/6*(k1[i+Cdim]+2*k2[i+Cdim]+2*k3[i+Cdim]+k4[i+Cdim]))+Ci[i]*step/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
+      tvali=Ci[i]*(1+step/6*(k1[i+Cdim]+2*k2[i+Cdim]+2*k3[i+Cdim]+k4[i+Cdim]))-Cr[i]*step/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
+    }
     Cr[i]=tvalr;
     Ci[i]=tvali;
   }
