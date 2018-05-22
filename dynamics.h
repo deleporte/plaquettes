@@ -6,12 +6,9 @@ struct lkmat{
 };
 
 
+double* force(double*, double*, int, double*, double*, double*, double*, double*, int);
 
-lkmat* dbMarkovPowers(double*, int, int);
-
-double meanval(double*, double*, int, double*, int);
-
-double* force(double*, double*, int, double*, int);
+double meanval(double*, double*, int, double*, double*, double*, double*, double*, int);
 
 void cholInv(double*, int);
 /* Computes the inverse of a definite positive matrix via Cholesky decomposition

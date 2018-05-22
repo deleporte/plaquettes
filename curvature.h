@@ -11,13 +11,11 @@ Outputs:
 Code status: proofed on 2017-08-14
 */
 
-double* sparse_mult(double*, double*, int);
+double* Markov(double*, int);
 
-double** Markov_powers(double*, int, double);
+double* diag(double*, int, double*, double*, double*, double*);
 
-int isDangerous(double*);
-
-double* curvature(double*, int, double);
+double* curvature(double*, double*, double*, double*, int, double);
 
 double* fullBasis(int);
 /* Computes a change of basis with first vectors the null space of curvature
@@ -49,4 +47,4 @@ Output:
 Code status: proofed on 2017-08-14
 */
 
-double* reducedCurvature(double*, int, double);
+double* reducedCurvature(double*, double*, double*, double*, int, double);

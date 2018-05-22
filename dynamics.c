@@ -19,263 +19,203 @@
 /* }; */
 
 
-lkmat* dbMarkovPowers(double* C, int dim, int kmax){
-  //As annoying as it might be we have to look at this array
-  //It returns arrays of size len(C)*(len(C)**2)
-  //T[i][a,b] is the proba, if we are in a at 0, to be in b at i
-  //The data is huge so it is arranged as a linked list
-  //It returns a pointer to i=0
-  double** Ttemp=NULL;
-  double* Cs=NULL;
-  lkmat* T=NULL;
-  lkmat* curr=NULL;
-  double dtemp;
-  int i,j,k;
-  
-
-  int d=(int)(log(dim+0.9)/log(2));
-  Ttemp=malloc(d*sizeof(double*));
-  
-  Ttemp[0]=malloc(dim*sizeof(double));
+double* force(double* Cr, double* Ci, int dim, double* eigvr, double* eigvi, double* eigveleft, double* eigveright, double* ham, int hamdim){
+  double* F;
+  int i,j,k,l;
+  double* deq_m;
+  double* eq_m;
+  double tvalr,tvali,ttvalr,ttvali;
+  double* Cnorm;
+  double norm;
+  int sqrthamdim=(int)sqrt(hamdim);
+  F=malloc(dim*2*sizeof(double));
+  for(i=0; i<dim*2; i++){
+    F[i]=0;
+  }
+  Cnorm=malloc(dim*sizeof(double));
+  eq_m=malloc(dim*sizeof(double));
+  deq_m=malloc(dim*dim*sqrthamdim/4*sizeof(double));
   for(i=0; i<dim; i++){
-    Ttemp[0][i]=C[i]/(C[(i/2)*2]+C[(i/2)*2+1]);
-  }
-    
-  for(i=1; i<d; i++){
-    Ttemp[i]=malloc(dim*(int)pow(2,i)*sizeof(double));
-    for(j=0; j<dim*(int)pow(2,i); j++){
-      Ttemp[i][j]=Ttemp[i-1][j/2]*Ttemp[0][j%dim];
-    }	
-  }
-  T=malloc(sizeof(lkmat));
-  T->data=malloc(dim*dim*dim*sizeof(double));
-  for(i=0; i<dim*dim*dim; i++){
-    if(i/dim/dim==(i/dim)%dim){
-      T->data[i]=Ttemp[d-1][i%(dim*dim/2)];
-    }
-    else{
-      T->data[i]=0;
-    }
-  }
-  //check integrity
-  for(i=0; i<dim; i++){
-    dtemp=0;
-    for(j=0; j<dim*dim; j++){
-      dtemp += T->data[i*dim*dim+j];
-    }
-    if(fabs(dtemp-1)>0.01){
-      printf("Error: T[0] is not stochastic\n");
-      i=dim;
-    }
-  }
-  
-  curr=T;
-  for(k=1; k<kmax; k++){
-    curr->next=malloc(sizeof(lkmat));
-    curr->next->prev=curr;
-    curr->next->data=malloc(dim*dim*dim*sizeof(double));
-    for(i=0; i<dim*dim*dim; i++){
-      j=(i/dim/dim)*dim*dim+(i%(dim*dim))/2;
-      curr->next->data[i]=Ttemp[0][i%(dim)]*(curr->data[j]+curr->data[j+dim*dim/2]);
-    }
-    curr=curr->next;
-    //check integrity
-    for(i=0; i<dim; i++){
-      dtemp=0;
-      for(j=0; j<dim*dim; j++){
-	dtemp += curr->data[i*dim*dim+j];
-      }
-      if(fabs(dtemp-1)>0.01){
-	printf("Error: T[%d] is not stochastic\n",k);
-	i=dim;
-      }
-    }
-  }
-
-  curr->next=NULL;
-  for(i=0; i<dim; i++){
-    Ttemp[0][i]=C[i]/(C[i]+C[(i+dim/2)%dim]);
-  }
-  curr=T;
-  for(k=0; k<kmax; k++){
-    curr->prev=malloc(sizeof(lkmat));
-    curr->prev->next=curr;
-    curr->prev->data=malloc(dim*dim*dim*sizeof(double));
-    for(i=0; i<dim*dim*dim; i++){
-      j=(i/dim/dim)*dim*dim+(i*2)%(dim*dim);
-      curr->prev->data[i]=Ttemp[0][(i/dim)%dim]*(curr->data[j]+curr->data[j+1]);
-    }
-    curr=curr->prev;
-    //check integrity
-    for(i=0; i<dim; i++){
-      dtemp=0;
-      for(j=0; j<dim*dim; j++){
-	dtemp += curr->data[i*dim*dim+j];
-      }
-      if(fabs(dtemp-1)>0.01){
-	printf("Error: T[%d] is not stochastic\n",-k);
-	i=dim;
-      }
-    }
-  }
-
-  curr->prev=NULL;
-  for(i=0; i<d; i++){
-    free(Ttemp[i]);
-  }
-  free(Ttemp);
-  return T;
-}
-
-double meanval(double* Cr, double* Ci, int Cdim, double* ham, int hamdim){
-  lkmat* T=NULL;
-  lkmat* curr;
-  double* gr=NULL;
-  double* Cnorm=NULL;
-  double* gi=NULL;
-  double E=0;
-  int i,j,k,oj,js,ojs;
-  int dimg=Cdim*Cdim*hamdim/4;
-  int d=log(Cdim+0.9)/log(2);
-  double tr,ti;
-
-  Cnorm=malloc(Cdim*sizeof(double));
-  for(i=0; i<Cdim; i++){
     Cnorm[i]=Cr[i]*Cr[i]+Ci[i]*Ci[i];
   }
-
-  gr=malloc(dimg*sizeof(double));
-  gi=malloc(dimg*sizeof(double));
-  for(i=0; i<dimg; i++){
-    gr[i]=ham[i/(dimg/(int)sqrt(hamdim))*(int)sqrt(hamdim)+(i/(Cdim/2))%(int)sqrt(hamdim)];
-    gi[i]=0;
-  }
-  for(i=0; i<Cdim+sqrt(hamdim)-1; i++){
-    for(j=0; j<dimg; j++){
-      oj=j-((j/(Cdim/2))%(int)sqrt(hamdim))*Cdim/2;
-      oj+=(j/(dimg/(int)sqrt(hamdim)))*Cdim/2;
-      js=(j/(int)pow(2,i))%Cdim;
-      ojs=(oj/(int)pow(2,i))%Cdim;
-      tr=(Cr[ojs]*Cr[js]+Ci[ojs]*Ci[js])*gr[j];
-      tr-=(Ci[ojs]*Cr[js]-Cr[ojs]*Ci[js])*gi[j];
-      tr/=Cnorm[js];
-      ti=(Cr[ojs]*Cr[js]+Ci[ojs]*Ci[js])*gi[j];
-      ti+=(Ci[ojs]*Cr[js]-Cr[ojs]*Ci[js])*gr[j];
-      ti/=Cnorm[js];
-      gr[j]=tr;
-      gi[j]=ti;
-    }
-  }
-  T=dbMarkovPowers(Cnorm,Cdim,50);
-  free(Cnorm);
-
-  curr=T;
-  while(curr->next != NULL){
-    curr=curr->next;
-  }
-  while(curr->prev != NULL){
-    for(i=0; i<Cdim; i++){
-      for(j=0; j<dimg; j++){
-	E+=gr[j]*curr->data[i*Cdim*Cdim+j%(Cdim*Cdim)]; //hamdim=4
+  for(i=0; i<dim; i++){
+    if(fabs(eigvi[i])<0.00001 && eigvr[i]>0.99999){
+      for(j=0; j<dim; j++){
+	eq_m[j]=eigveright[i*dim+j];
+      }
+      //positive
+      if(eq_m[0]<0){
+	for(j=0; j<dim; j++){
+	  eq_m[j]=-eq_m[j];
+	}
+      }
+      //normalize
+      norm=0;
+      for(j=0; j<dim; j++){
+	norm+=eq_m[j];
+      }
+      for(j=0; j<dim; j++){
+	eq_m[j]/=norm;
       }
     }
-    curr=curr->prev;
   }
-  //freeing lkmat
-  curr=T;
-  while(curr->next != NULL){
-    curr=curr->next;
+  for(i=0; i<dim*dim*sqrthamdim/4; i++){
+    deq_m[i]=eq_m[i/(dim*sqrthamdim/4)];
+    for(k=1; k<dim*sqrthamdim/4; k*=2){
+      deq_m[i]*=Cnorm[(i/k)%dim]/(Cnorm[(((i/k)%dim)/2)*2]+Cnorm[(((i/k)%dim)/2)*2+1]);
+    }
   }
-  while(curr->prev != NULL){
-    curr=curr->prev;
-    free(curr->next->data);
-    free(curr->next);
+
+  for(j=0; j<sqrthamdim; j++){
+    for(i=0; i<dim*dim*sqrthamdim/4; i++){
+      tvalr=deq_m[i];
+      tvalr*=ham[j*sqrthamdim+(i/(dim/2))%sqrthamdim];
+      tvali=0;
+      l=i%(dim/2)+j*dim/2+(i/(dim*sqrthamdim/2))*(dim*sqrthamdim/2);
+      for(k=1; k<=dim*sqrthamdim/4; k*=2){
+	ttvalr=tvalr*Cr[(l/k)%dim]-tvali*Ci[(l/k)%dim];
+	ttvali=tvalr*Ci[(l/k)%dim]+tvali*Cr[(l/k)%dim];
+	tvalr=ttvalr;
+	tvali=ttvali;
+	ttvalr=tvalr*Cr[(i/k)%dim]+tvali*Ci[(i/k)%dim];
+	ttvali=-tvalr*Ci[(i/k)%dim]+tvali*Cr[(i/k)%dim];
+	tvalr=ttvalr/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
+	tvali=ttvali/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
+      }
+      //multiply by the probability of this event knowing the other (summed over the distances)
+      for(k=0; k<dim; k++){
+	if(eigvr[k]*eigvr[k]+eigvi[k]*eigvi[k]>0.000001 && eigvr[k]<0.99999){
+	  if(fabs(eigvi[k])<0.000001){
+	    for(l=0; l<dim; l++){
+	      F[l]+=tvalr*eigvr[k]/(1-eigvr[k])*eigveleft[l*dim+k]
+		*eigveright[k*dim+(i/(dim*sqrthamdim/4))];
+	      F[l]+=tvalr*eigvr[k]/(1-eigvr[k])*eigveleft[(i%dim)*dim+k]
+		*eigveright[k*dim+l]
+		*eq_m[i%dim]/eq_m[l];
+	    }
+	    for(l=0; l<dim; l++){
+	      F[l+dim]+=tvali*eigvr[k]/(1-eigvr[k])*eigveleft[l*dim+k]
+		*eigveright[k*dim+(i/(dim*sqrthamdim/4))];
+	      F[l+dim]+=tvali*eigvr[k]/(1-eigvr[k])*eigveleft[(i%dim)*dim+k]
+		*eigveright[k*dim+l]
+		*eq_m[i%dim]/eq_m[l];
+	    }
+	  }
+	  else{
+	    for(l=0; l<dim; l++){
+	      F[l]+=tvalr*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
+			     *(eigveleft[l*dim+k]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]
+			       -eigveleft[l*dim+k+1]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))])
+			     -eigvi[k]*
+			     (eigveleft[l*dim+k]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))]
+			      +eigveleft[l*dim+k+1]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]))
+		/(pow(1-eigvr[k],2)+pow(eigvi[k],2));
+	      F[l]+=tvalr*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
+			     *(eigveleft[(i%dim)*dim+k]*eigveright[k*dim+l]
+			       -eigveleft[(i%dim)*dim+k+1]*eigveright[(k+1)*dim+l])
+			     -eigvi[k]*
+			     (eigveleft[(i%dim)*dim+k]*eigveright[(k+1)*dim+l]
+			      +eigveleft[(i%dim)*dim+k+1]*eigveright[k*dim+l]))
+		/(pow(1-eigvr[k],2)+pow(eigvi[k],2))
+		*eq_m[i%dim]/eq_m[l];
+	    }
+	    for(l=0; l<dim; l++){
+	      F[l+dim]+=tvali*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
+			     *(eigveleft[l*dim+k]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]
+			       -eigveleft[l*dim+k+1]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))])
+			     -eigvi[k]*
+			     (eigveleft[l*dim+k]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))]
+			      +eigveleft[l*dim+k+1]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]))
+		/(pow(1-eigvr[k],2)+pow(eigvi[k],2));
+	      F[l+dim]+=tvali*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
+			     *(eigveleft[(i%dim)*dim+k]*eigveright[k*dim+l]
+			       -eigveleft[(i%dim)*dim+k+1]*eigveright[(k+1)*dim+l])
+			     -eigvi[k]*
+			     (eigveleft[(i%dim)*dim+k]*eigveright[(k+1)*dim+l]
+			      +eigveleft[(i%dim)*dim+k+1]*eigveright[k*dim+l]))
+		/(pow(1-eigvr[k],2)+pow(eigvi[k],2))
+		*eq_m[i%dim]/eq_m[l];
+	    }
+	    i++;
+	  }
+	}
+      }
+    }
   }
-  free(curr->data);
-  free(curr);
-  free(gr);
-  free(gi);
-  return E;
+  free(eq_m);
+  free(deq_m);
+  free(Cnorm);
+  return F;  
 }
+  
+  
 
-
-
-double* force(double* Cr, double* Ci, int Cdim, double* ham, int hamdim){
-  lkmat* T=NULL;
-  lkmat* curr;
-  double* gr=NULL;
-  double* Cnorm=NULL;
-  double* gi=NULL;
-  double* Fr=NULL;
-  double* Fi=NULL;
-  int i,j,k,oj,js,ojs;
-  int dimg=Cdim*Cdim*hamdim/4;
-  int d=log(Cdim+0.9)/log(2);
-  double tr,ti;
-
-  Cnorm=malloc(Cdim*sizeof(double));
-  for(i=0; i<Cdim; i++){
+double meanval(double* Cr, double* Ci, int dim, double* eigvr, double* eigvi, double* eigveleft, double* eigveright, double* ham, int hamdim){
+  double val=0;
+  double norm=0;
+  int i,j,k,l;
+  double* deq_m;
+  double* eq_m;
+  double* Cnorm;
+  double tvalr,tvali,ttvalr,ttvali;
+  int sqrthamdim=(int)sqrt(hamdim);
+  Cnorm=malloc(dim*sizeof(double));
+  eq_m=malloc(dim*sizeof(double));
+  deq_m=malloc(dim*dim*sqrthamdim/4*sizeof(double));
+  for(i=0; i<dim; i++){
     Cnorm[i]=Cr[i]*Cr[i]+Ci[i]*Ci[i];
   }
-
-  gr=malloc(dimg*sizeof(double));
-  gi=malloc(dimg*sizeof(double));
-  for(i=0; i<dimg; i++){
-    gr[i]=ham[i/(dimg/(int)sqrt(hamdim))*(int)sqrt(hamdim)+(i/(Cdim/2))%(int)sqrt(hamdim)];
-    gi[i]=0;
-  }
-  for(i=0; i<Cdim+sqrt(hamdim)-1; i++){
-    for(j=0; j<dimg; j++){
-      oj=j-((j/(Cdim/2))%(int)sqrt(hamdim))*Cdim/2;
-      oj+=(j/(dimg/(int)sqrt(hamdim)))*Cdim/2;
-      js=(j/(int)pow(2,i))%Cdim;
-      ojs=(oj/(int)pow(2,i))%Cdim;
-      tr=(Cr[ojs]*Cr[js]+Ci[ojs]*Ci[js])*gr[j];
-      tr-=(Ci[ojs]*Cr[js]-Cr[ojs]*Ci[js])*gi[j];
-      tr/=Cnorm[js];
-      ti=(Cr[ojs]*Cr[js]+Ci[ojs]*Ci[js])*gi[j];
-      ti+=(Ci[ojs]*Cr[js]-Cr[ojs]*Ci[js])*gr[j];
-      ti/=Cnorm[js];
-      gr[j]=tr;
-      gi[j]=ti;
-    }
-  }
-  T=dbMarkovPowers(Cnorm,Cdim,50);
-  free(Cnorm);
-
-  Fr=malloc(Cdim*2*sizeof(double));
-  for(i=0; i<Cdim; i++){
-    Fr[i]=0;
-    Fr[i+Cdim]=0;
-  }
-  curr=T;
-  while(curr->next != NULL){
-    curr=curr->next;
-  }
-  while(curr->prev != NULL){
-    for(i=0; i<Cdim; i++){
-      for(j=0; j<dimg; j++){
-	Fr[i]+=gr[j]*curr->data[i*Cdim*Cdim+j%(Cdim*Cdim)]; //hamdim=4
-	Fr[i+Cdim]+=gi[j]*curr->data[i*Cdim*Cdim+j%(Cdim*Cdim)];
+  for(i=0; i<dim; i++){
+    if(fabs(eigvi[i])<0.00001 && eigvr[i]>0.99999){
+      for(j=0; j<dim; j++){
+	eq_m[j]=eigveright[i*dim+j];
+      }
+      //positive
+      if(eq_m[0]<0){
+	for(j=0; j<dim; j++){
+	  eq_m[j]=-eq_m[j];
+	}
+      }
+      //normalize
+      norm=0;
+      for(j=0; j<dim; j++){
+	norm+=eq_m[j];
+      }
+      for(j=0; j<dim; j++){
+	eq_m[j]/=norm;
       }
     }
-    curr=curr->prev;
   }
-  //freeing lkmat
-  curr=T;
-  while(curr->next != NULL){
-    curr=curr->next;
+  for(i=0; i<dim*dim*sqrthamdim/4; i++){
+    deq_m[i]=eq_m[i/(dim*sqrthamdim/4)];
+    for(k=1; k<dim*sqrthamdim/4; k*=2){
+      deq_m[i]*=Cnorm[(i/k)%dim]/(Cnorm[(((i/k)%dim)/2)*2]+Cnorm[(((i/k)%dim)/2)*2+1]);
+    }
   }
-  while(curr->prev != NULL){
-    curr=curr->prev;
-    free(curr->next->data);
-    free(curr->next);
+  free(eq_m);
+
+  for(j=0; j<sqrthamdim; j++){
+    for(i=0; i<dim*dim*sqrthamdim/4; i++){
+      tvalr=deq_m[i];
+      tvalr*=ham[j*sqrthamdim+(i/(dim/2))%sqrthamdim];
+      tvali=0;
+      l=i%(dim/2)+j*dim/2+(i/(dim*sqrthamdim/2))*(dim*sqrthamdim/2);
+      for(k=1; k<=dim*sqrthamdim/4; k*=2){
+	ttvalr=tvalr*Cr[(l/k)%dim]-tvali*Ci[(l/k)%dim];
+	ttvali=tvalr*Ci[(l/k)%dim]+tvali*Cr[(l/k)%dim];
+	tvalr=ttvalr;
+	tvali=ttvali;
+	ttvalr=tvalr*Cr[(i/k)%dim]+tvali*Ci[(i/k)%dim];
+	ttvali=-tvalr*Ci[(i/k)%dim]+tvali*Cr[(i/k)%dim];
+	tvalr=ttvalr/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
+	tvali=ttvali/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
+      }
+      val+=tvalr;
+    }
   }
-  free(curr->data);
-  free(curr);
-  free(gr);
-  free(gi);
-  return Fr;
+  free(deq_m);
+  free(Cnorm);
+  return val;
 }
 
 void cholInv(double* Gred, int Gdim){
@@ -337,9 +277,13 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   double* V=NULL;
   double* UV=NULL;
   double* Fred=NULL;
+  double* eigvr=NULL;
+  double* eigvi=NULL;
+  double* eigveleft=NULL;
+  double* eigveright=NULL;
   int i,j,k;
   int d=log(0.9+Cdim)/log(2);
-  double tval,tvalr,tvali;
+  double tvalr,tvali;
 
   U=fullBasis(d);
   V=rotation(d);
@@ -354,25 +298,38 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   }
   free(U);
   free(V);
+
+  eigvr=malloc(Cdim*sizeof(double));
+  eigvi=malloc(Cdim*sizeof(double));
+  eigveleft=malloc(Cdim*Cdim*sizeof(double));
+  eigveright=malloc(Cdim*Cdim*sizeof(double));
   //I - Computation of k1
+  printf("k1\n");
   //I.1 Compute the reduced curvature and its projected inverse
   Cnorm=malloc(Cdim*sizeof(double));
   for(i=0; i<Cdim; i++){
     Cnorm[i]=Cr[i]*Cr[i]+Ci[i]*Ci[i];
   }
-  Gred=reducedCurvature(Cnorm,Cdim,0.00000000000001);
-  
-  
+  diag(Cnorm,Cdim,eigvr,eigvi,eigveleft,eigveright);
+  Gred=reducedCurvature(eigvr,eigvi,eigveleft,eigveright,Cdim,0.00000000000001);
   free(Cnorm);
+  for(i=0; i<Cdim*Cdim/4; i++){
+    if(Gred[i]!=Gred[i]){
+      printf("Nan error in curv for k1.\n");
+      i=Cdim*Cdim/4;
+    }
+    printf("%lf\n",Gred[i]);
+  }
   cholInv(Gred,Cdim/2);
   for(i=0; i<Cdim*Cdim/4; i++){
     if(Gred[i]!=Gred[i]){
       printf("Nan error in curv for k1.\n");
       i=Cdim*Cdim/4;
     }
+    printf("%lf\n",Gred[i]);
   }
   //I.2 Compute the force in the given basis
-  F=force(Cr,Ci,Cdim,ham,hamdim);
+  F=force(Cr,Ci,Cdim,eigvr,eigvi,eigveleft,eigveright,ham,hamdim);
   for(i=0; i<2*Cdim; i++){
     if(F[i]!=F[i]){
       printf("Nan error in force for k1.\n");
@@ -440,6 +397,7 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   
   free(kred);
   //II - Computation of k2
+  printf("k2\n");
   //II.1 : computation of the new position
   Ctr=malloc(Cdim*sizeof(double));
   Cti=malloc(Cdim*sizeof(double));
@@ -462,14 +420,26 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   for(i=0; i<Cdim; i++){
     Cnorm[i]=Ctr[i]*Ctr[i]+Cti[i]*Cti[i];
   }
-  Gred=reducedCurvature(Cnorm,Cdim,0.00000000000001);
-  if(Gred[0]!=Gred[0]){
-    printf("Nan error in curv for k2.\n");
-  }
+  diag(Cnorm,Cdim,eigvr,eigvi,eigveleft,eigveright);
+  Gred=reducedCurvature(eigvr,eigvi,eigveleft,eigveright,Cdim,0.00000000000001);
   free(Cnorm);
+  for(i=0; i<Cdim*Cdim/4; i++){
+    if(Gred[i]!=Gred[i]){
+      printf("Nan error in curv for k2.\n");
+      i=Cdim*Cdim/4;
+    }
+    printf("%lf\n",Gred[i]);
+  }
   cholInv(Gred,Cdim/2);
+  for(i=0; i<Cdim*Cdim/4; i++){
+    if(Gred[i]!=Gred[i]){
+      printf("Nan error in curv for k2.\n");
+      i=Cdim*Cdim/4;
+    }
+    printf("%lf\n",Gred[i]);
+  }
   //II.3 Compute the force in the given basis
-  F=force(Ctr,Cti,Cdim,ham,hamdim);
+  F=force(Ctr,Cti,Cdim,eigvr,eigvi,eigveleft,eigveright,ham,hamdim);
   if(F[0]!=F[0]){
     printf("Nan error in force for k2.\n");
   }
@@ -522,6 +492,7 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   free(kred);
 
   //III - Computation of k3
+  printf("k3\n");
   //III.1 : computation of the new position
   Ctr=malloc(Cdim*sizeof(double));
   Cti=malloc(Cdim*sizeof(double));
@@ -540,14 +511,26 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   for(i=0; i<Cdim; i++){
     Cnorm[i]=Ctr[i]*Ctr[i]+Cti[i]*Cti[i];
   }
-  Gred=reducedCurvature(Cnorm,Cdim,0.00000000000001);
-  if(Gred[0]!=Gred[0]){
-    printf("Nan error in curv for k3.\n");
-  }
+  diag(Cnorm,Cdim,eigvr,eigvi,eigveleft,eigveright);
+  Gred=reducedCurvature(eigvr,eigvi,eigveleft,eigveright,Cdim,0.00000000000001);
   free(Cnorm);
+  for(i=0; i<Cdim*Cdim/4; i++){
+    if(Gred[i]!=Gred[i]){
+      printf("Nan error in curv for k3.\n");
+      i=Cdim*Cdim/4;
+    }
+    printf("%lf\n",Gred[i]);
+  }
   cholInv(Gred,Cdim/2);
+  for(i=0; i<Cdim*Cdim/4; i++){
+    if(Gred[i]!=Gred[i]){
+      printf("Nan error in curv for k3.\n");
+      i=Cdim*Cdim/4;
+    }
+    printf("%lf\n",Gred[i]);
+  }
   //III.3 Compute the force in the given basis
-  F=force(Ctr,Cti,Cdim,ham,hamdim);
+  F=force(Ctr,Cti,Cdim,eigvr,eigvi,eigveleft,eigveright,ham,hamdim);
   if(F[0]!=F[0]){
     printf("Nan error in force for k3.\n");
   }
@@ -600,6 +583,7 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   free(kred);
 
   //IIII - Computation of k4
+  printf("k4\n");
   //IIII.1 : computation of the new position
   Ctr=malloc(Cdim*sizeof(double));
   Cti=malloc(Cdim*sizeof(double));
@@ -613,19 +597,35 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
       Cti[i]=Ci[i]*(1+step*k3[i+Cdim])-Cr[i]*step*k3[i];
     }
   }
+  if(Ctr[0]!=Ctr[0]){
+    printf("Nan error in position for k4.\n");
+  }
   //IIII.2 Compute the reduced curvature and its projected inverse
   Cnorm=malloc(Cdim*sizeof(double));
   for(i=0; i<Cdim; i++){
     Cnorm[i]=Ctr[i]*Ctr[i]+Cti[i]*Cti[i];
   }
-  Gred=reducedCurvature(Cnorm,Cdim,0.00000000000001);
-  if(Gred[0]!=Gred[0]){
-    printf("Nan error in curv for k4.\n");
-  }
+  diag(Cnorm,Cdim,eigvr,eigvi,eigveleft,eigveright);
+  Gred=reducedCurvature(eigvr,eigvi,eigveleft,eigveright,Cdim,0.00000000000001);
+
   free(Cnorm);
+  for(i=0; i<Cdim*Cdim/4; i++){
+    if(Gred[i]!=Gred[i]){
+      printf("Nan error in curv for k4.\n");
+      i=Cdim*Cdim/4;
+    }
+    printf("%lf\n",Gred[i]);
+  }
   cholInv(Gred,Cdim/2);
+  for(i=0; i<Cdim*Cdim/4; i++){
+    if(Gred[i]!=Gred[i]){
+      printf("Nan error in curv for k4.\n");
+      i=Cdim*Cdim/4;
+    }
+    printf("%lf\n",Gred[i]);
+  }
   //IIII.3 Compute the force in the given basis
-  F=force(Ctr,Cti,Cdim,ham,hamdim);
+  F=force(Ctr,Cti,Cdim,eigvr,eigvi,eigveleft,eigveright,ham,hamdim);
   if(F[0]!=F[0]){
     printf("Nan error in force for k4.\n");
   }
@@ -704,4 +704,8 @@ void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double s
   free(k2);
   free(k3);
   free(k4);
+  free(eigvr);
+  free(eigvi);
+  free(eigveleft);
+  free(eigveright);
 }  

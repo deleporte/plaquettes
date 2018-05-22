@@ -2,8 +2,11 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "lapack/lapacke.h"
+//#include <atlas_enum.h>
 #include "curvature.h"
+//#include "clapack.h"
+//lapack functions definitions
+#include "python.h"
 
 double* generate_C(int d, double m, double M){
   double* C=NULL;
@@ -16,332 +19,102 @@ double* generate_C(int d, double m, double M){
   return C;
 }
 
-double* sparse_mult(double* mat, double* C, int dim){
-  double* prod=NULL;
-  int i=0;
-  int j=0;
-
-  prod=malloc(dim*dim*sizeof(double));
-  for(i=0; i<dim; i++){
-    for(j=0; j<dim; j++){
-      prod[i*dim+j]=mat[i*dim+(2*j)%dim]*C[(2*j)%dim];
-      prod[i*dim+j]+=mat[i*dim+(2*j+1)%dim]*C[(2*j+1)%dim];
-      prod[i*dim+j]/=C[(2*j)%dim]+C[(2*j+1)%dim];
-      //printf("Value on line %d and column %d: %f\n", i,j,prod[i*dim+j]);
-    }
-  }
-  return prod;
-}
-
-double** Markov_powers(double* C, int dim, double error){
-  double** powerseq;
-  char converged=0;
+double* Markov(double* C, int dim){
+  double* T;
   int i;
-  int j;
-  double dist;
-
-  powerseq=malloc(100*sizeof(double*));
-  //The first matrix is the identity
-  powerseq[0]=malloc(dim*dim*sizeof(double));
+  T=malloc(dim*dim*sizeof(double));
   for(i=0; i<dim; i++){
-    for(j=0; j<dim; j++){
-      if(i==j){
-	powerseq[0][i*dim+j]=1;
-      }
-      else{
-	powerseq[0][i*dim+j]=0;
-      }
-    }
+    T[((2*i)%dim)*dim+i]=C[(2*i)%dim]/(C[(2*i)%dim]+C[(2*i)%dim+1]);
+    T[((2*i)%dim+1)*dim+i]=C[(2*i)%dim+1]/(C[(2*i)%dim]+C[(2*i)%dim+1]);
   }
-  //Test: writing the identity matrix
-  
-  i=0;
-  while (converged==0 && i<99){
-    i++;
-    powerseq[i]=sparse_mult(powerseq[i-1],C,dim);
-    dist=0;
-    for(j=0; j<dim; j++){
-      dist+= fabs(powerseq[i][j*dim]-powerseq[i][j*dim+1]);
-    }
-    if (dist<error){
-      converged=1;
-      //printf("Markov chain converges after %d steps.\n", i);
-    }
-    if (i==99){
-      //printf("Warning: slow convergence.\n");
-    }
-  }
-  for (j=i; j<100; j++){
-    powerseq[j]=powerseq[i];
-  }
-  return powerseq;
+  return T;
 }
 
-int isDangerous(double* C){
-  return 0;
+double* diag(double* C, int dim, double* wr, double* wi, double* vel, double* ver){
+  double* T=NULL;
+  T=Markov(C,dim);
+  eigvals(T,dim,wr,wi,vel,ver);
+  return T;
 }
 
-double* curvature(double* C, int dim, double error){
-  double** powerseq=NULL;
+double* curvature(double* eigvr, double* eigvi, double* eigveleft, double* eigveright, int dim, double error){
   double* eq_m=NULL;
   double* G=NULL;
-  double* eigveright=NULL;
-  double* eigveleft=NULL;
-  double* eigvr=NULL;
-  double* eigvi=NULL;
-  double* Q=NULL;
-  double* Z=NULL;
-  double* Id=NULL;
-  double* H=NULL;
-  double* Hmem=NULL;
-  lapack_logical* select=NULL;
-  double* workspace=NULL;
-  int* failedr=NULL;
-  int* failedl=NULL;
   int i,j,k,l;
-  int layout=LAPACK_ROW_MAJOR;
-  double norm,r,th;
-  powerseq=Markov_powers(C,dim,error);
+  double norm;
   eq_m=malloc(dim*sizeof(double));
-  if(isDangerous(C)){
-    //spectral decomposition of C
-    Id=malloc(dim*dim*sizeof(double));
-    for(i==0; i<dim*dim; i++){
-      if(i%(dim+1)==0){
-	Id[i]=1;
-      }
-      else{
-	Id[i]=0;
-      }
-    }
-    Q=malloc(dim*dim*sizeof(double));
-    Z=malloc(dim*dim*sizeof(double));
-    Hmem=malloc(dim*dim*sizeof(double));
-    for(i=0; i<dim*dim; i++){
-      Hmem[i]=powerseq[1][i];
-    }
-    LAPACKE_dgghrd(layout,'I','I',dim,1,dim,Hmem,dim,Id,dim,Q,dim,Z,dim);
-    free(Id);
-    H=malloc(dim*dim*sizeof(double));
-    for(i=0; i<dim*dim; i++){
-      H[i]=Hmem[i];
-    }
-    LAPACKE_dhseqr(layout,'E','N',dim,1,dim,H,dim,eigvr,eigvi,NULL,1);
-    for(i=0; i<dim*dim; i++){
-      H[i]=Hmem[i];
-    }
-    select=malloc(dim*sizeof(lapack_logical));
-    
-    //find eigenvectors with large eigenvalues
-    k=0;
-    for(i=0; i<dim; i++){
-      if(eigvr[i]*eigvr[i]+eigvi[i]*eigvi[i]>0.95){
-        select[i]=1;
-	k++;
-      }
-      else{
-	select[i]=0;
-      }
-    }
-    
-    eigveright=malloc(k*dim*sizeof(double));
-    eigveleft=malloc(k*dim*sizeof(double));
-    failedr=malloc(k*sizeof(int));
-    failedl=malloc(k*sizeof(int));
-    LAPACKE_dhsein(layout, //int matrix_layout
-		   'B',    //char job
-		   'N',    //char eigsrc
-		   'N',    //char initv
-		   select, //lapack_logical* select
-		   dim,    //lapack_int n
-		   H,      //double* h
-		   dim,    //int ldh
-		   eigvr,  //double* wr
-		   eigvi,  //double* wi
-		   eigveleft, //double* vl
-		   dim,    //int ldvl
-		   eigveright, //double* vr
-		   dim,     //int ldvr
-		   k,       //int mm
-		   NULL,       //int* m
-		   failedl,   //int* iffaill
-		   failedr);   //int* iffailr
-    free(workspace);
-    free(select);
-    free(H);
-    workspace=malloc(dim*sizeof(double));
-    k=0;
-    //multiply by Q the left eigenvectors and by Z' the right eigenvectors
-    for(i=0; i<dim; i++){
-      if(eigvr[i]*eigvr[i]+eigvi[i]*eigvi[i]>0.95){
-	for(j=0; j<dim; j++){
-	  workspace[j]=0;
-	  for(l=0; l<dim; l++){
-	    workspace[j]+=Q[j*dim+l]*eigveleft[k*dim+l];
-	  }
-	}
-	for(j=0; j<dim; j++){
-	  eigveleft[k*dim+j]=workspace[j];
-	}
-	for(j=0; j<dim; j++){
-	  workspace[j]=0;
-	  for(l=0; l<dim; l++){
-	    workspace[j]+=Z[j*dim+l]*eigveright[k*dim+l];
-	  }
-	}
-	for(j=0; j<dim; j++){
-	  eigveright[k*dim+j]=workspace[j];
-	}
-	k++;
-      }
-    }
-    free(Q);
-    free(Z);
-    free(workspace);
-    free(Hmem);
-    free(failedr);
-    free(failedl);
-    //normalize in linfty the right eigenvectors and l1 the left eigenvectors
-    k=0;
-    for(i=0; i<dim; i++){
-      if(eigvr[i]*eigvr[i]+eigvi[i]*eigvi[i]>0.95){
-	//if the eigenvalue is real, there is only one column
-	if(abs(eigvi[i])<0.00001){
-	  norm=0;
+  if(1){
+    if(1){
+      //find the equilibrium state
+      for(i=0; i<dim; i++){
+	if(fabs(eigvi[i])<0.00001 && eigvr[i]>0.9999){
 	  for(j=0; j<dim; j++){
-	    if (abs(eigveright[k*dim+j])>norm){
-	      norm=abs(eigveright[k*dim+j]);
+	    eq_m[j]=eigveright[i*dim+j];
+	  }
+	  //positive
+	  if(eq_m[0]<0){
+	    for(j=0; j<dim; j++){
+	      eq_m[j]=-eq_m[j];
 	    }
 	  }
-	  for(j=0; j<dim; j++){
-	    eigveright[k*dim+j]/=norm;
-	  }
+	  //normalize
 	  norm=0;
 	  for(j=0; j<dim; j++){
-	    norm+= abs(eigveleft[k*dim+j]);
+	    norm+=eq_m[j];
 	  }
 	  for(j=0; j<dim; j++){
-	    eigveleft[k*dim+j]/=norm;
-	  }
-	  k++;
-	}
-	else{
-	  norm=0;
-	  for(j=0; j<dim; j++){
-	    if (sqrt(eigveright[k*dim+j]*eigveright[k*dim+j]
-		     +eigveright[(k+1)*dim+j]*eigveright[(k+1)*dim+j])>norm){
-	      norm=sqrt(eigveright[k*dim+j]*eigveright[k*dim+j]
-			+eigveright[(k+1)*dim+j]*eigveright[(k+1)*dim+j]);
-	    }
-	  }
-	  for(j=0; j<2*dim; j++){
-	    eigveright[k*dim+j]/=norm;
-	  }
-	  norm=0;
-	  for(j=0; j<dim; j++){
-	    norm+= sqrt(eigveleft[k*dim+j]*eigveleft[k*dim+j]
-			+eigveleft[(k+1)*dim+j]*eigveleft[(k+1)*dim+j]);
-	  }
-	  for(j=0; j<2*dim; j++){
-	    eigveleft[k*dim+j]/=norm;
-	  }
-	  k+=2;
-	}
-      }
-    }
-    //find the equilibrium state
-    k=0;
-    for(i=0; i<dim; i++){
-      if(eigvr[i]*eigvr[i]+eigvi[i]*eigvi[i]>0.95){
-	k++;
-	if(abs(eigvi[i])<0.00001 && eigvr[i]>0.99999){
-	  for(j=0; j<dim; j++){
-	    eq_m[j]=eigveleft[k*dim+j];
+	    eq_m[j]/=norm;
 	  }
 	}
       }
-    }
-  }
-  else{
-    for(i=0; i<dim; i++){
-      eq_m[i]=powerseq[99][i*dim];
     }
   }
   G=malloc(dim*dim*sizeof(double));
-  //in the general case, G depends only on the equilibrium measure
-  //and the data of the first powers
-  for(i=0; i<dim; i++){
-    for(j=0; j<dim; j++){
-      G[i*dim+j]=0;
-      for(k=0; k<100; k++){
-	G[i*dim+j]+=eq_m[j]*(powerseq[k][i*dim+j]-eq_m[i]);
-	if (k!=0){
-	  G[i*dim+j]+=eq_m[i]*(powerseq[k][j*dim+i]-eq_m[j]);
-	}
-      }
+  for(i=0; i<dim*dim; i++){
+    if(i%(dim+1)){
+      G[i]=-eq_m[i%dim]*eq_m[i/dim];
+    }
+    else{
+      G[i]=eq_m[i%dim]*(1-eq_m[i/dim]);
     }
   }
-  if(isDangerous(C)){
-    k=0;
+  if(1){
     for(i=0; i<dim; i++){
-      if(eigvr[i]*eigvr[i]+eigvi[i]*eigvi[i]>0.95){
-	if(abs(eigvi[i])<0.00001){
+      if(eigvr[i]*eigvr[i]+eigvi[i]*eigvi[i]>0.000001 && eigvr[i]<0.9999){
+	if(fabs(eigvi[i])<0.00001){
 	  for(j=0; j<dim; j++){
 	    for(l=0; l<dim; l++){
-	      G[j*dim+l]+=pow(eigvr[k],100)/(1-eigvr[k])*eq_m[l]
-		*(eigveleft[k*dim+j]*eigveright[k*dim+l]);
-	      G[l*dim+j]+=pow(eigvr[k],100)/(1-eigvr[k])*eq_m[l]
-		*(eigveleft[k*dim+j]*eigveright[k*dim+l]);
+	      G[j*dim+l]+=eigvr[i]/(1-eigvr[i])*eq_m[l]
+		*(eigveleft[l*dim+i]*eigveright[i*dim+j]);
+	      G[l*dim+j]+=eigvr[i]/(1-eigvr[i])*eq_m[l]
+		*(eigveleft[l*dim+i]*eigveright[i*dim+j]);
 	    }
 	  }
-	  k++;
 	}
 	else{
 	  for(j=0; j<dim; j++){
 	    for(l=0; l<dim; l++){
-	      r=sqrt(eigvr[k]*eigvr[k]+eigvi[k]*eigvi[k]);
-	      th=acos(eigvr[k]/r);
-	      G[j*dim+l]+=2*pow(r,100)*((cos(100*th)*(1-eigvr[k])
-				      -sin(100*th)*eigvi[k])
-		*(eigveleft[k*dim+j]*eigveright[k*dim+l]
-		  -eigveleft[(k+1)*dim+j]*eigveright[(k+1)*dim+l])
-				      +(sin(100*th)*eigvr[k]
-					+cos(100*th)*(1-eigvr[k]))
-	        *(eigveleft[k*dim+j]*eigveright[(k+1)*dim+l]
-		  -eigveleft[(k+1)*dim+j]*eigveright[k*dim+l]))
-		/(pow((1-eigvr[k]),2)+pow(eigvi[k],2));
-	      G[l*dim+j]+=2*pow(r,100)*((cos(100*th)*(1-eigvr[k])
-				      -sin(100*th)*eigvi[k])
-		*(eigveleft[k*dim+j]*eigveright[k*dim+l]
-		  -eigveleft[(k+1)*dim+j]*eigveright[(k+1)*dim+l])
-				      +(sin(100*th)*eigvr[k]
-					+cos(100*th)*(1-eigvr[k]))
-	        *(eigveleft[k*dim+j]*eigveright[(k+1)*dim+l]
-		  -eigveleft[(k+1)*dim+j]*eigveright[k*dim+l]))
-		/(pow((1-eigvr[k]),2)+pow(eigvi[k],2));
+	      G[j*dim+l]+=2*((eigvr[i]*(1-eigvr[i])-eigvi[i]*eigvi[i])
+		*(eigveleft[j*dim+i]*eigveright[i*dim+l]
+		  -eigveleft[j*dim+i+1]*eigveright[(i+1)*dim+l])
+		-(eigvi[i])
+	        *(eigveleft[j*dim+i]*eigveright[(i+1)*dim+l]
+		  +eigveleft[j*dim+i+1]*eigveright[i*dim+l]))
+		/(pow((1-eigvr[i]),2)+pow(eigvi[i],2));
+	      G[l*dim+j]+=2*((eigvr[i]*(1-eigvr[i])-eigvi[i]*eigvi[i])
+		*(eigveleft[j*dim+i]*eigveright[i*dim+l]
+		  -eigveleft[j*dim+i+1]*eigveright[(i+1)*dim+l])
+				      -eigvi[i]
+	        *(eigveleft[j*dim+i]*eigveright[(i+1)*dim+l]
+		  +eigveleft[j*dim+i+1]*eigveright[i*dim+l]))
+		/(pow((1-eigvr[i]),2)+pow(eigvi[i],2));
 	    }
 	  }
-	  k+=2;
+	  i++;
 	}
       }
     }
   }
-  
-  for(k=0; k<100; k++){
-    if(k==99){
-      free(powerseq[k]);
-    }
-    else{
-      if (powerseq[k]==powerseq[k+1]){
-	k=99;
-      }
-      free(powerseq[k]);
-    }
-  }
-
-  
-
-  free(powerseq);
   free(eq_m);
   return G;
 }
@@ -450,18 +223,17 @@ double* rotation(int d){
   return V;
 }
 
-double* reducedCurvature(double* C, int dim, double error){
+double* reducedCurvature(double* wr, double* wi, double* vel, double* ver, int dim, double error){
   double* U=NULL;
   double* V=NULL;
   double* G=NULL;
   double* Gred=NULL;
   double* UV=NULL;
   double* UVG=NULL;
-  int d,i,j,k,l,m,n;
-  double val;
+  int d,i,j,k;
 
   d=(log(0.5+dim)/log(2));
-  G=curvature(C,dim,error);
+  G=curvature(wr,wi,vel,ver,dim,error);
   V=rotation(d);
   U=fullBasis(d);
 

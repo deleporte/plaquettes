@@ -1,4 +1,4 @@
-// -*- compile-command: "gcc main.c curvature.c dynamics.c gnuplot_i.c -lm -o myprog" -*-
+// -*- compile-command: "gcc main.c curvature.c dynamics.c python.c gnuplot_i.c $(python-config --cflags) $(python-config --libs) -lm -o myprog" -*-
 
 #define SIZE 2
 #define J -0.9
@@ -7,9 +7,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
+#include "laroutines.h"
 #include "curvature.h"
 #include "dynamics.h"
 #include "gnuplot_i.h"
+#include <Python.h>
+#include "python.h"
 
 int main(int argc, char* argv[]){
 
@@ -24,7 +27,24 @@ int main(int argc, char* argv[]){
   lkmat* curr= NULL;
   int i,j;
   gnuplot_ctrl* hr;
+  PyObject* main_module;
+  PyObject* global_dict;
+  FILE* pyfile=NULL;
+  PyObject* Keys;
+
+  Py_Initialize();
   
+  main_module=PyImport_AddModule("__main__");
+  pyfile=fopen("eigvals.py", "r");
+  PyRun_SimpleFile(pyfile,"eigvals.py");
+  global_dict = PyModule_GetDict(main_module);
+  if(global_dict==NULL){
+    printf("Could not load dictionary.\n");
+  }
+  Keys=PyDict_Keys(global_dict);
+  for(i=0; i<PyList_Size(Keys); i++){
+    printf("%s\n",PyString_AsString(PyList_GetItem(Keys,i)));
+  }
   srand(time(NULL));
   hr=gnuplot_init();
   gnuplot_setstyle(hr, "points");
@@ -48,6 +68,7 @@ int main(int argc, char* argv[]){
   /* ham[13]=(1-J)/2; */
   /* ham[11]=(1-J)/2; */
   /* ham[14]=(1-J)/2; */
+  
   //XXZ
   ham[0]=J;
   ham[5]=-J;
@@ -84,23 +105,25 @@ int main(int argc, char* argv[]){
   printf("Press any key to continue.\n");
   while(!getchar());
   for(j=0; j<1000; j++){
-    oneStep(Cr,Ci,(int)pow(2,SIZE),ham,16,0.01/(1+abs(J*J)));
+    oneStep(Cr,Ci,(int)pow(2,SIZE),ham,16,0.01/(1+abs(J*J))/pow(2,SIZE));
     printf("At step %d: \n",j+1);
     for(i=0; i<pow(2,SIZE); i++){
       printf("C[%d]=%f+%f i\n",i,Cr[i],Ci[i]);
     }
-    printf("%lf\n", meanval(Cr,Ci,(int)pow(2,SIZE),ham,16));
+    //printf("%lf\n", meanval(Cr,Ci,(int)pow(2,SIZE),ham,16));
     //plot
     //gnuplot_resetplot(hr);
     //gnuplot_cmd(hr, "set yrange [-3:3]");
     //gnuplot_plot_x(hr,Cr,(int)pow(2,SIZE),"Real part");
     //gnuplot_plot_x(hr,Ci,(int)pow(2,SIZE),"Imag part");
+    while(!getchar());
   }
-  printf("%lf\n", meanval(Cr,Ci,(int)pow(2,SIZE),ham,16));
+  //printf("%lf\n", meanval(Cr,Ci,(int)pow(2,SIZE),ham,16));
   while(!getchar());
   free(Cr);
   free(Ci);
   free(ham);
   gnuplot_close(hr);
+  Py_Finalize();
   return 0;
 }

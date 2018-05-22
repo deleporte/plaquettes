@@ -39,6 +39,11 @@ def generate_biaised_C(d,m=1,M=2):
         C.append((random.random()*(M-m)+m)*(0.1+k%2))
     return C
 
+def generate_deterministic_C(d,m=1,M=2):
+    C=[]
+    for k in range(2**d):
+        C.append(m+(k%2)*(M-m))
+    return C
  
 def chain(C=generate_C(4)):
     #creates the transition matrix of a Markov chain with random plaquette weights, then prints its spectral gap
@@ -48,7 +53,7 @@ def chain(C=generate_C(4)):
         M[i,2*(i%(2**(d-2)))]=C[2*i]/(C[2*i]+C[2*i+1])
         M[i,2*(i%(2**(d-2)))+1]=C[2*i+1]/(C[2*i]+C[2*i+1])
     Sp,vects=scipy.linalg.eig(M,left=True,right=False)
-    mu=vects[0]
+    mu=vects.T[0]
     print Sp
     maxval=0.
     for val in Sp:
