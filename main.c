@@ -1,5 +1,6 @@
 // -*- compile-command: "gcc main.c curvature.c dynamics.c python.c gnuplot_i.c $(python-config --cflags) $(python-config --libs) -lm -o myprog" -*-
 
+
 #define SIZE 2
 #define J -0.9
 
