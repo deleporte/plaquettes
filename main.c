@@ -1,9 +1,9 @@
-// -*- compile-command: "gcc main.c curvature.c dynamics.c python.c gnuplot_i.c $(python-config --cflags) $(python-config --libs) -lm -o myprog" -*-
+// -*- compile-command: "gcc main.c curvature.c dynamics.c python.c $(python-config --cflags) $(python-config --libs) -lm -o myprog" -*-
 
 
 // commentaire a enlever
 
-
+extern "C" {
 #define SIZE 2
 #define J -0.9
 
@@ -14,9 +14,10 @@
 #include "laroutines.h"
 #include "curvature.h"
 #include "dynamics.h"
-#include "gnuplot_i.h"
 #include <Python.h>
 #include "python.h"
+
+
 
 int main(int argc, char* argv[]){
 
@@ -30,7 +31,6 @@ int main(int argc, char* argv[]){
   lkmat* T= NULL;
   lkmat* curr= NULL;
   int i,j;
-  gnuplot_ctrl* hr;
   PyObject* main_module;
   PyObject* global_dict;
   FILE* pyfile=NULL;
@@ -50,10 +50,6 @@ int main(int argc, char* argv[]){
     printf("%s\n",PyString_AsString(PyList_GetItem(Keys,i)));
   }
   srand(time(NULL));
-  hr=gnuplot_init();
-  gnuplot_setstyle(hr, "points");
-  gnuplot_set_xlabel(hr, "Coordinates");
-  gnuplot_set_ylabel(hr, "Values");
   
   ham=malloc(16*sizeof(double));
   for(i=0; i<16; i++){
@@ -127,7 +123,7 @@ int main(int argc, char* argv[]){
   free(Cr);
   free(Ci);
   free(ham);
-  gnuplot_close(hr);
   Py_Finalize();
   return 0;
+}
 }
