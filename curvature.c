@@ -33,7 +33,7 @@ double* Markov(double* C, int dim){
 double* diag(double* C, int dim, double* wr, double* wi, double* vel, double* ver){
   double* T=NULL;
   T=Markov(C,dim);
-  eigvals(T,dim,wr,wi,vel,ver);
+  eigvals(T,dim,wr,wi,vel,ver); //à changer pour utiliser plutot armadillo
   return T;
 }
 
