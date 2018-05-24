@@ -2,7 +2,7 @@
 # parameters: $1:directory $2:file.cc $3:binary_name
 
 
-~/c++/makef/makef $1 $2 /home/faure/c++/makef/makef.config $3 
+./makef $1 $2 ./makef.config $3 
 cd $1
 export LD_LIBRARY_PATH=/usr/local/lib/root:$LD_LIBRARY_PATH
 make all
