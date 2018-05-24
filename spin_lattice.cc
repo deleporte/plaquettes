@@ -80,17 +80,23 @@ l_int binary_to_int(vector<int> be)
 
 
 //============================
-void Reseau::documentation_en_lyx()
+void Reseau::documentation_Fred_en_lyx()
 {
 	int res =system("lyx rapport/spins-reseau.lyx");
 }
 
 //============================
-void Reseau::documentation_en_pdf()
+void Reseau::documentation_Fred_en_pdf()
 {
 int res =	system("evince rapport/spins-reseau.pdf");
 }
 
+//============================
+void Reseau::documentation_Alix_en_pdf()
+{
+	int res =	system("evince doc/Curvature+of+Constant+plaquettes+on+a+loop-1.pdf");
+
+}
 
 //================================
 /*!

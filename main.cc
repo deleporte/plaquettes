@@ -27,6 +27,9 @@ using namespace std;
 
 
 
+
+
+
 int main(int argc, char* argv[])
 {
 
@@ -38,7 +41,7 @@ int main(int argc, char* argv[])
 
 	t.join(); // attend ici que t se termine
 
-	
+
 
 	
 //----donne la main a l'utilisateur ---
