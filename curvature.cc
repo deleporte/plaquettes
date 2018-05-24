@@ -5,9 +5,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-//#include <atlas_enum.h>
+
 #include "curvature.h"
-//#include "clapack.h"
+
 //lapack functions definitions
 
 using namespace std;
@@ -41,18 +41,20 @@ void diag(vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, mat& T)
 {
   Markov(C,T); //computing Markov chain
   cout<<"Markov matrix computed"<<endl;
-  eig_gen(w,ver,T); //right eigenvalues and eigenvectors
-  uvec indices=sort_index(abs(w),"descend"); //sort eigenvalues according to their abs value
-  w=w(indices);
-  ver=ver.cols(indices); //sort right eigenvectors accordingly
-  cout<<det(ver)<<endl;
-  inv(vel,ver);
+  eig_gen(w,vel,T); //eigenvalues and eigenvectors
+  //uvec indices=sort_index(abs(w),"descend"); //sort eigenvalues according to their abs value
+  //w=w(indices);
+  //ver=ver.cols(indices); //sort right eigenvectors accordingly
+  cout<<det(vel)<<endl;
+  inv(ver,vel);
+  //cout<<"Diagcheck:"<<vel*diagmat(w)*ver-T<<endl;
   //eigvals(T,dim,wr,wi,vel,ver); //à changer pour utiliser plutot armadillo
   //return T;
 }
 
 void curvature(cx_vec& w, cx_mat& vel, cx_mat& ver, mat& G){
-  vec eq_m=abs(ver.col(0));
+  uvec indices=sort_index(abs(w),"descend"); //sort eigenvalues according to their abs value
+  vec eq_m=abs(vel.col(indices(0)));
   int i,j,k,l;
   double norm;
 
@@ -106,14 +108,21 @@ void curvature(cx_vec& w, cx_mat& vel, cx_mat& ver, mat& G){
   //   }
   // }
   for(i=0; i<dim; i++){
-    G(i,i)=eq_m(i)*eq_m(i);
+    G(i,i)=eq_m(i);
+  }
+  for(i=0; i<dim; i++){
+    for(j=0; j<dim; j++){
+      G(i,j)-=eq_m(i)*eq_m(j);
+    }
   }
   
-  for(i=1; i<dim; i++){
-    for(j=0; j<dim; j++){
-      for(l=0; l<dim; l++){
-	G(j,l)+=real(w(i)/(1.-w(i))*eq_m(l)*vel(l,i)*ver(i,j));
-	G(l,j)+=real(w(i)/(1.-w(i))*eq_m(l)*vel(l,i)*ver(i,j));
+  for(i=0; i<dim; i++){
+    if(i!=indices(0)){
+      for(j=0; j<dim; j++){
+	for(l=0; l<dim; l++){
+	  G(j,l)+=real(w(i)/(1.-w(i))*eq_m(j)*vel(l,i)*ver(i,j));
+	  G(l,j)+=real(w(i)/(1.-w(i))*eq_m(j)*vel(l,i)*ver(i,j)); //on peut etre + efficaces ?
+	}
       }
     }
   }
@@ -206,7 +215,7 @@ void fullBasis(int d, mat& U){
     }
     //return U;
   }
-
+  U.shed_rows(0,(int)pow(2,d-1)-1); //needs to be made more efficiently
 }
 
 void rotation(int d,mat& V){

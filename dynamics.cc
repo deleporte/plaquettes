@@ -11,152 +11,139 @@
 
 #define DESCENT 1
 
-/* typedef struct lkmat lkmat; */
-/* struct lkmat{ */
-/*   double* data=NULL; */
-/*   lkmat* next=NULL; */
-/*   lkmat* prev=NULL; */
-/* }; */
 
-
-double* force(double* Cr, double* Ci, int dim, double* eigvr, double* eigvi, double* eigveleft, double* eigveright, double* ham, int hamdim){
-  double* F;
+void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& F){
+//double* Cr, double* Ci, int dim, double* eigvr, double* eigvi, double* eigveleft, double* eigveright, double* ham, int hamdim){
+  //double* F;
+  uvec indices=sort_index(abs(w),"descend");
   int i,j,k,l;
-  double* deq_m;
-  double* eq_m;
-  double tvalr,tvali,ttvalr,ttvali;
-  double* Cnorm;
+  vec deq_m;
+  vec eq_m=abs(ver.col(indices(0)));
+  //double tvalr,tvali,ttvalr,ttvali;
+  complex tval;
+  vec Cnorm=abs(C);
   double norm;
-  int sqrthamdim=(int)sqrt(hamdim);
-  F=malloc(dim*2*sizeof(double));
-  for(i=0; i<dim*2; i++){
-    F[i]=0;
-  }
-  Cnorm=malloc(dim*sizeof(double));
-  eq_m=malloc(dim*sizeof(double));
-  deq_m=malloc(dim*dim*sqrthamdim/4*sizeof(double));
-  for(i=0; i<dim; i++){
-    Cnorm[i]=Cr[i]*Cr[i]+Ci[i]*Ci[i];
-  }
-  for(i=0; i<dim; i++){
-    if(fabs(eigvi[i])<0.00001 && eigvr[i]>0.99999){
-      for(j=0; j<dim; j++){
-	eq_m[j]=eigveright[i*dim+j];
-      }
-      //positive
-      if(eq_m[0]<0){
-	for(j=0; j<dim; j++){
-	  eq_m[j]=-eq_m[j];
-	}
-      }
+  int sqrthamdim=ham.n_cols;
+  int dim=C.size();
+  F.zeros(dim);
+  deqm.zeros(dim*dim*sqrthamdim/4);
+  //for(i=0; i<dim*2; i++){
+  //F[i]=0;
+  //}
+  //Cnorm=malloc(dim*sizeof(double));.
+  //eq_m=malloc(dim*sizeof(double));
+  //deq_m=malloc(dim*dim*sqrthamdim/4*sizeof(double));
+  //for(i=0; i<dim; i++){
+  //  Cnorm[i]=Cr[i]*Cr[i]+Ci[i]*Ci[i];
+  //}
+
       //normalize
-      norm=0;
-      for(j=0; j<dim; j++){
-	norm+=eq_m[j];
-      }
-      for(j=0; j<dim; j++){
-	eq_m[j]/=norm;
-      }
-    }
+  norm=0;
+  for(j=0; j<dim; j++){
+    norm+=eq_m[j];
   }
+  for(j=0; j<dim; j++){
+    eq_m[j]/=norm;
+  }
+  //compute the double equilibrium measure
   for(i=0; i<dim*dim*sqrthamdim/4; i++){
-    deq_m[i]=eq_m[i/(dim*sqrthamdim/4)];
+    deq_m(i)=eq_m(i/(dim*sqrthamdim/4));
     for(k=1; k<dim*sqrthamdim/4; k*=2){
-      deq_m[i]*=Cnorm[(i/k)%dim]/(Cnorm[(((i/k)%dim)/2)*2]+Cnorm[(((i/k)%dim)/2)*2+1]);
+      deq_m(i)*=Cnorm((i/k)%dim)/(Cnorm((((i/k)%dim)/2)*2)+Cnorm((((i/k)%dim)/2)*2+1));
     }
   }
 
+  //compute the force
   for(j=0; j<sqrthamdim; j++){
     for(i=0; i<dim*dim*sqrthamdim/4; i++){
-      tvalr=deq_m[i];
-      tvalr*=ham[j*sqrthamdim+(i/(dim/2))%sqrthamdim];
-      tvali=0;
+      tval=deq_m[i];
+      tval*=ham[j*sqrthamdim+(i/(dim/2))%sqrthamdim];
+      //tvali=0;
       l=i%(dim/2)+j*dim/2+(i/(dim*sqrthamdim/2))*(dim*sqrthamdim/2);
       for(k=1; k<=dim*sqrthamdim/4; k*=2){
-	ttvalr=tvalr*Cr[(l/k)%dim]-tvali*Ci[(l/k)%dim];
-	ttvali=tvalr*Ci[(l/k)%dim]+tvali*Cr[(l/k)%dim];
-	tvalr=ttvalr;
-	tvali=ttvali;
-	ttvalr=tvalr*Cr[(i/k)%dim]+tvali*Ci[(i/k)%dim];
-	ttvali=-tvalr*Ci[(i/k)%dim]+tvali*Cr[(i/k)%dim];
-	tvalr=ttvalr/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
-	tvali=ttvali/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
+	tval=tval*C((l/k)%dim)/C((i/k)%dim);
+	//ttvalr=tvalr*Cr[(l/k)%dim]-tvali*Ci[(l/k)%dim];
+	//ttvali=tvalr*Ci[(l/k)%dim]+tvali*Cr[(l/k)%dim];
+	//tvalr=ttvalr;
+	//tvali=ttvali;
+	//ttvalr=tvalr*Cr[(i/k)%dim]+tvali*Ci[(i/k)%dim];
+	//ttvali=-tvalr*Ci[(i/k)%dim]+tvali*Cr[(i/k)%dim];
+	//tvalr=ttvalr/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
+	//tvali=ttvali/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
       }
       //multiply by the probability of this event knowing the other (summed over the distances)
       for(k=0; k<dim; k++){
-	if(eigvr[k]*eigvr[k]+eigvi[k]*eigvi[k]>0.000001 && eigvr[k]<0.99999){
-	  if(fabs(eigvi[k])<0.000001){
+	//if(eigvr[k]*eigvr[k]+eigvi[k]*eigvi[k]>0.000001 && eigvr[k]<0.99999){
+	if(k!=indices(0)){
+	  if(1){
 	    for(l=0; l<dim; l++){
-	      F[l]+=tvalr*eigvr[k]/(1-eigvr[k])*eigveleft[l*dim+k]
-		*eigveright[k*dim+(i/(dim*sqrthamdim/4))];
-	      F[l]+=tvalr*eigvr[k]/(1-eigvr[k])*eigveleft[(i%dim)*dim+k]
-		*eigveright[k*dim+l]
-		*eq_m[i%dim]/eq_m[l];
+	      F(l)+=tval*w(k)/(1.-w(k))*vel(l,k)*ver(k,(i/(dim*sqrthamdim/4)));
+	      F(l)+=tval*w(k)/(1-w(k))*vel((i%dim),k)*ver(k,l)*eq_m(i%dim)/eq_m(l);
 	    }
-	    for(l=0; l<dim; l++){
-	      F[l+dim]+=tvali*eigvr[k]/(1-eigvr[k])*eigveleft[l*dim+k]
-		*eigveright[k*dim+(i/(dim*sqrthamdim/4))];
-	      F[l+dim]+=tvali*eigvr[k]/(1-eigvr[k])*eigveleft[(i%dim)*dim+k]
-		*eigveright[k*dim+l]
-		*eq_m[i%dim]/eq_m[l];
-	    }
+	    //for(l=0; l<dim; l++){
+	    //F[l+dim]+=tvali*eigvr[k]/(1-eigvr[k])*eigveleft[l*dim+k]
+	    //	*eigveright[k*dim+(i/(dim*sqrthamdim/4))];
+	    //F[l+dim]+=tvali*eigvr[k]/(1-eigvr[k])*eigveleft[(i%dim)*dim+k]
+	    //	*eigveright[k*dim+l]
+	    //	*eq_m[i%dim]/eq_m[l];
+	    //}
 	  }
-	  else{
-	    for(l=0; l<dim; l++){
-	      F[l]+=tvalr*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
-			     *(eigveleft[l*dim+k]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]
-			       -eigveleft[l*dim+k+1]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))])
-			     -eigvi[k]*
-			     (eigveleft[l*dim+k]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))]
-			      +eigveleft[l*dim+k+1]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]))
-		/(pow(1-eigvr[k],2)+pow(eigvi[k],2));
-	      F[l]+=tvalr*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
-			     *(eigveleft[(i%dim)*dim+k]*eigveright[k*dim+l]
-			       -eigveleft[(i%dim)*dim+k+1]*eigveright[(k+1)*dim+l])
-			     -eigvi[k]*
-			     (eigveleft[(i%dim)*dim+k]*eigveright[(k+1)*dim+l]
-			      +eigveleft[(i%dim)*dim+k+1]*eigveright[k*dim+l]))
-		/(pow(1-eigvr[k],2)+pow(eigvi[k],2))
-		*eq_m[i%dim]/eq_m[l];
-	    }
-	    for(l=0; l<dim; l++){
-	      F[l+dim]+=tvali*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
-			     *(eigveleft[l*dim+k]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]
-			       -eigveleft[l*dim+k+1]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))])
-			     -eigvi[k]*
-			     (eigveleft[l*dim+k]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))]
-			      +eigveleft[l*dim+k+1]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]))
-		/(pow(1-eigvr[k],2)+pow(eigvi[k],2));
-	      F[l+dim]+=tvali*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
-			     *(eigveleft[(i%dim)*dim+k]*eigveright[k*dim+l]
-			       -eigveleft[(i%dim)*dim+k+1]*eigveright[(k+1)*dim+l])
-			     -eigvi[k]*
-			     (eigveleft[(i%dim)*dim+k]*eigveright[(k+1)*dim+l]
-			      +eigveleft[(i%dim)*dim+k+1]*eigveright[k*dim+l]))
-		/(pow(1-eigvr[k],2)+pow(eigvi[k],2))
-		*eq_m[i%dim]/eq_m[l];
-	    }
-	    i++;
-	  }
+	  // else{
+	//     for(l=0; l<dim; l++){
+	//       F[l]+=tvalr*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
+	// 		     *(eigveleft[l*dim+k]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]
+	// 		       -eigveleft[l*dim+k+1]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))])
+	// 		     -eigvi[k]*
+	// 		     (eigveleft[l*dim+k]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))]
+	// 		      +eigveleft[l*dim+k+1]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]))
+	// 	/(pow(1-eigvr[k],2)+pow(eigvi[k],2));
+	//       F[l]+=tvalr*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
+	// 		     *(eigveleft[(i%dim)*dim+k]*eigveright[k*dim+l]
+	// 		       -eigveleft[(i%dim)*dim+k+1]*eigveright[(k+1)*dim+l])
+	// 		     -eigvi[k]*
+	// 		     (eigveleft[(i%dim)*dim+k]*eigveright[(k+1)*dim+l]
+	// 		      +eigveleft[(i%dim)*dim+k+1]*eigveright[k*dim+l]))
+	// 	/(pow(1-eigvr[k],2)+pow(eigvi[k],2))
+	// 	*eq_m[i%dim]/eq_m[l];
+	//     }
+	//     for(l=0; l<dim; l++){
+	//       F[l+dim]+=tvali*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
+	// 		     *(eigveleft[l*dim+k]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]
+	// 		       -eigveleft[l*dim+k+1]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))])
+	// 		     -eigvi[k]*
+	// 		     (eigveleft[l*dim+k]*eigveright[(k+1)*dim+(i/(dim*sqrthamdim/4))]
+	// 		      +eigveleft[l*dim+k+1]*eigveright[k*dim+(i/(dim*sqrthamdim/4))]))
+	// 	/(pow(1-eigvr[k],2)+pow(eigvi[k],2));
+	//       F[l+dim]+=tvali*2*((eigvr[k]*(1-eigvr[k])-eigvi[k]*eigvi[k])
+	// 		     *(eigveleft[(i%dim)*dim+k]*eigveright[k*dim+l]
+	// 		       -eigveleft[(i%dim)*dim+k+1]*eigveright[(k+1)*dim+l])
+	// 		     -eigvi[k]*
+	// 		     (eigveleft[(i%dim)*dim+k]*eigveright[(k+1)*dim+l]
+	// 		      +eigveleft[(i%dim)*dim+k+1]*eigveright[k*dim+l]))
+	// 	/(pow(1-eigvr[k],2)+pow(eigvi[k],2))
+	// 	*eq_m[i%dim]/eq_m[l];
+	//     }
+	//     i++;
+	//   }
+	// }
 	}
       }
     }
   }
-  free(eq_m);
-  free(deq_m);
-  free(Cnorm);
-  return F;  
+    //return F;  
 }
   
   
 
-double meanval(double* Cr, double* Ci, int dim, double* eigvr, double* eigvi, double* eigveleft, double* eigveright, double* ham, int hamdim){
+double meanval(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham){
+//(double* Cr, double* Ci, int dim, double* eigvr, double* eigvi, double* eigveleft, double* eigveright, double* ham, int hamdim){
+  uvec indices=sort_index(abs(w),"descend");
   double val=0;
   double norm=0;
   int i,j,k,l;
   double* deq_m;
-  double* eq_m;
-  double* Cnorm;
+  vec eq_m=abs(vel.col(indices(0)));
+  vec Cnorm=abs(C);
   double tvalr,tvali,ttvalr,ttvali;
   int sqrthamdim=(int)sqrt(hamdim);
   Cnorm=malloc(dim*sizeof(double));
@@ -216,47 +203,6 @@ double meanval(double* Cr, double* Ci, int dim, double* eigvr, double* eigvi, do
   free(deq_m);
   free(Cnorm);
   return val;
-}
-
-void cholInv(double* Gred, int Gdim){
-  double* L=NULL;
-  double* Linv=NULL;
-  int i,j,k,l;
-  L=malloc(Gdim*Gdim*sizeof(double));
-  //Cholesky decomposition
-  for(i=0; i<Gdim; i++){
-    if (Gred[i*(Gdim+1)]<=0){
-      printf("Warning: Gred not definite positive.\n");
-    }
-    L[i*(Gdim+1)]=sqrt(Gred[i*(Gdim+1)]);
-    for(j=1; j<Gdim-i; j++){
-      L[i*(Gdim+1)+j]=Gred[i*(Gdim+1)+j]/sqrt(Gred[i*(Gdim+1)]);
-    }
-    for(k=1;k<Gdim-i; k++){
-      for(l=1; l<Gdim-i; l++){
-	Gred[(i+k)*Gdim+i+l]-=L[i*(Gdim+1)+k]*L[i*(Gdim+1)+l];
-      }
-    }
-  }
-  //inverse of the L matrix
-  Linv=malloc(Gdim*Gdim*sizeof(double));
-  for(i=0; i<Gdim; i++){
-    Linv[i*(Gdim+1)]=1/L[i*(Gdim+1)];
-    for(j=1; j<Gdim-i; j++){
-      Linv[i*(Gdim+1)+j]=-L[i*(Gdim+1)+j]/L[i*(Gdim+1)]/L[(i+j)*(Gdim+1)];
-    }
-  }
-  free(L);
-  //inverse of the metric. From now on Gred contains its inverse
-  for(i=0; i<Gdim; i++){
-    for(j=0; j<Gdim; j++){
-      Gred[i*(Gdim)+j]=0;
-      for(k=max(i,j); k<Gdim; k++){
-	Gred[i*(Gdim)+j]+=Linv[i*(Gdim)+k]*Linv[j*(Gdim)+k];
-      }
-    }
-  }
-  free(Linv);
 }
 
 void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double step){

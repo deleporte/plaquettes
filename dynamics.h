@@ -1,34 +1,31 @@
-typedef struct lkmat lkmat;
-struct lkmat{
-  double* data;
-  lkmat* next;
-  lkmat* prev;
-};
+void force(cx_vec&, cx_vec&, cx_mat&, cx_mat&, cx_mat&, cx_vec&);
+/*
 
-
-double* force(double*, double*, int, double*, double*, double*, double*, double*, int);
-
-double meanval(double*, double*, int, double*, double*, double*, double*, double*, int);
-
-void cholInv(double*, int);
-/* Computes the inverse of a definite positive matrix via Cholesky decomposition
-
-Inputs:
-   - double pointer towards the symmetric matrix
-   - int of the row dimension
+Inputs
+   - complex vector containing the coefficients
+   - complex vector containing the eigenvalues
+   - complex matrices with left and right eigenvectors
+   - complex hamiltonian matrix
+   - complex vector which will contain the force
 
 Outputs:
-   - No return
-   - Changes the values in the pointer to store the inverted matrix
-   - No data allocation
+   - sets the force
 
-Caveats:
-   - Symmetry of the input matrix is not checked. Only upper diagnoal
-     values are used
-   - Nonpositivity will trigger a warning to stdout but not stop execution
-   - Only real-valued matrices are supported
+Code status: nothing
+*/
 
-Code status: proofed on 2017-08-14
- */
+void meanval(cx_vec&, cx_vec&, cx_mat&, cx_mat&, mat&);
+/*
+Computes the mean value of an observable
+
+Inputs
+   - complex vector containing the coefficients
+   - complex vector containing the eigenvalues
+   - complex matrices with left and right eigenvectors
+   - complex hamiltonian matrix
+
+Outputs
+   - returns a double containing the mean value
+*/
 
 void oneStep(double*, double*, int, double*, int, double);
