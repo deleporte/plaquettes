@@ -1,0 +1,1515 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+\usepackage{a4wide}
+\end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+theorems-sec
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 0
+\use_package esint 0
+\use_package mathdots 0
+\use_package mathtools 0
+\use_package mhchem 0
+\use_package stackrel 0
+\use_package stmaryrd 0
+\use_package undertilde 0
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Model of spins on Lattice
+\end_layout
+
+\begin_layout Date
+27 juin 2003,
+\end_layout
+
+\begin_layout Standard
+Classement: Spins sur réseau
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Faire:
+\end_layout
+
+\begin_layout Plain Layout
+Demander à JeanChristian, ex de H donnant un spectre RMT:
+\begin_inset Formula $J_{1}\vec{S_{i}}\vec{S_{i+1}+J_{2}S_{i}S_{i+2}}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+Comprendre la bande numéro 2, coté t=0
+\end_layout
+
+\begin_layout Plain Layout
+Et la bande 1 en t=1.
+\end_layout
+
+\begin_layout Plain Layout
+Equation de mvt classique; retrouver les solitons; quantifier.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+References:
+\end_layout
+
+\begin_layout Itemize
+Book of Sachdev: model of Ising spin on 1Dim lattice in transverse magnetic
+ field.
+ This is an exact soluble model.
+\end_layout
+
+\begin_layout Section
+Definitions
+\end_layout
+
+\begin_layout Standard
+Consider a 
+\series bold
+périodique 1D lattice with 
+\begin_inset Formula $N$
+\end_inset
+
+ discrete site:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+i=1\rightarrow N
+\]
+
+\end_inset
+
+On each site there is a spin 1/2.
+ 
+\end_layout
+
+\begin_layout Standard
+The total Hilbert space is then
+\begin_inset Formula 
+\[
+\mathcal{H}_{tot}=\underbrace{\mathbb{C}^{2}\otimes\ldots\otimes\mathbb{C}^{2}}_{N\textrm{ }}
+\]
+
+\end_inset
+
+One has 
+\begin_inset Formula $\dim\mathcal{H}_{tot}=2^{N}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The standard basis is composed by states of the form:
+\begin_inset Formula 
+\[
+|s_{1},s_{2},\ldots,s_{N}\rangle,\qquad s_{i}=0\textrm{ or }1
+\]
+
+\end_inset
+
+In particular the state 
+\begin_inset Formula $|0\rangle=|0,\ldots,0\rangle$
+\end_inset
+
+ corresponds to all the spin down.
+\end_layout
+
+\begin_layout Subsubsection
+Relations of SU(2) algebra
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+|z\rangle=\exp\left(z\hat{J}_{+}\right)|0\rangle:\textrm{ coherent state}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\langle z|z\rangle=\left(1+\left|z\right|^{2}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\langle z|\hat{J}_{0}|z\rangle & = & \frac{1}{2}\left(\left|z\right|^{2}-1\right)\\
+_{n}\langle z|\hat{J}_{0}|z\rangle_{n} & = & \frac{1}{2}\frac{\left(\left|z\right|^{2}-1\right)}{\left(1+\left|z\right|^{2}\right)}=2\beta\overline{\beta}-1=\frac{1}{2}\cos\theta\\
+_{n}\langle z|\hat{J}_{x}|z\rangle_{n} & = & \frac{z+\overline{z}}{1+\left|z\right|^{2}}=\left(\beta+\overline{\beta}\right)\sqrt{1-\beta\overline{\beta}}=\frac{1}{2}\sin\theta\cos\varphi
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\beta=\frac{z}{\sqrt{1+\left|z\right|^{2}}};\qquad\left|\beta\right|<1
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Remark (for after):
+\begin_inset Formula 
+\[
+\partial_{\overline{\beta}}\langle J_{0}\rangle_{n}=2\beta
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\partial_{\overline{\beta}}\langle J_{x}\rangle_{n}=\frac{1}{2\sqrt{1-\beta\overline{\beta}}}\left(2-3\beta\overline{\beta}-\beta^{2}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Coherent States
+\end_layout
+
+\begin_layout Subsection
+Field coherent states
+\end_layout
+
+\begin_layout Definition
+For a given 
+\begin_inset Formula $\psi\equiv\left(\psi_{1},\ldots,\psi_{n}\right)\in\mathbb{C}^{N}$
+\end_inset
+
+, one associates a 
+\series bold
+field coherent state
+\series default
+:
+\begin_inset Formula 
+\begin{eqnarray*}
+|\psi\rangle & = & \exp\left(\sum_{i=1}^{N}\psi_{i}\hat{J}_{+,i}\right)|0\rangle\\
+ & = & \bigotimes_{i=1}^{N}\exp\left(\psi_{i}\hat{J}_{+,i}\right)|0_{i}\rangle=\bigotimes_{i=1}^{N}|\psi_{i}\rangle
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Think of 
+\begin_inset Formula $|\psi\rangle$
+\end_inset
+
+ as a classical field 
+\begin_inset Formula $\psi(i)$
+\end_inset
+
+, noted 
+\begin_inset Formula $\psi_{i}=(i|\psi)$
+\end_inset
+
+, on the lattice with values in 
+\noun on
+
+\begin_inset Formula $\mathbb{C}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We note
+\begin_inset Formula 
+\[
+\mathcal{H}_{N}=\mathbb{C}^{N}
+\]
+
+\end_inset
+
+the space of classical fields and 
+\begin_inset Formula $|\psi)\in\mathcal{H}_{N}=\mathbb{C}^{N}$
+\end_inset
+
+ a classical field.
+ 
+\end_layout
+
+\begin_layout Standard
+This space is the quantized space of the torus 
+\begin_inset Formula $\mathcal{H}_{N}\left(\theta=0\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The standard (position) basis is written:
+\begin_inset Formula 
+\[
+|i)=(0,\ldots,1,\ldots0)\in\mathcal{H}_{N}=\mathbb{C}^{N}
+\]
+
+\end_inset
+
+with 
+\begin_inset Formula $i=1\rightarrow N$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+For example, for 
+\begin_inset Formula $\phi\in\mathbb{C}$
+\end_inset
+
+,
+\begin_inset Formula 
+\[
+|\phi|i)\rangle=\exp\left(\phi\hat{J}_{+,i}\right)|0\rangle
+\]
+
+\end_inset
+
+is a spin coherent state at site 
+\begin_inset Formula $i$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+Field operators
+\end_layout
+
+\begin_layout Standard
+We consider and note 
+\begin_inset Formula $(\hat{J}_{+}|=\left(\hat{J}_{+,1},\ldots\hat{J}_{+,i},\ldots\hat{J}_{+,N}\right)$
+\end_inset
+
+ as a field operator.
+ Similarly for every operator.
+\end_layout
+
+\begin_layout Standard
+For instance
+\begin_inset Formula 
+\[
+\hat{J}_{+,i}=(\hat{J}_{+}|i)
+\]
+
+\end_inset
+
+we write also:
+\begin_inset Formula 
+\[
+\hat{J}_{+,\psi}=(\hat{J}_{+}|\psi)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+One has
+\begin_inset Formula 
+\begin{eqnarray*}
+|\psi\rangle & = & \exp\left(\sum_{i=1}^{N}\psi_{i}\hat{J}_{+,i}\right)|0\rangle\\
+ & = & \exp\left(\sum_{i=1}^{N}(i|\psi)(\hat{J}_{+}|i)\right)|0\rangle\\
+ & = & \exp\left((\hat{J}_{+}|\psi)\right)|0\rangle
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Scalar product
+\end_layout
+
+\begin_layout Standard
+One has
+\begin_inset Formula 
+\begin{eqnarray*}
+\langle\psi|\psi\rangle & = & \prod_{i=1}^{N}\langle\psi_{i}|\psi_{i}\rangle=\prod_{i=1}^{N}\left(1+\left|\psi_{i}\right|^{2}\right)\\
+ & = & \exp\left(\sum_{i=1}^{N}\ln\left(1+\left|\psi_{i}\right|^{2}\right)\right)
+\end{eqnarray*}
+
+\end_inset
+
+So only if 
+\begin_inset Formula $\left|\psi_{i}\right|^{2}\simeq0$
+\end_inset
+
+, then one has 
+\begin_inset Formula $\langle\psi|\psi\rangle\simeq\exp\left(\sum_{i=1}^{N}\left|\psi_{i}\right|^{2}\right)=\exp\left((\psi|\psi)\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+Canonical variables; Classical equation of motion
+\end_layout
+
+\begin_layout Standard
+As for SU(2) coherent states, one define
+\begin_inset Formula 
+\[
+\beta_{i}=\frac{\psi_{i}}{\sqrt{1+\left|\psi_{i}\right|^{2}}}
+\]
+
+\end_inset
+
+so the classical equation of motion are
+\begin_inset Formula 
+\[
+\frac{d\beta_{i}}{dt}=-i\frac{\partial H}{\partial\overline{\beta}_{i}}
+\]
+
+\end_inset
+
+with
+\begin_inset Formula 
+\[
+H=_{n}\langle\psi|\hat{H}|\psi\rangle_{n}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Closure relation
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\hat{I}_{\mathcal{H}_{tot}}=\int d\left[\psi\right]\,|\psi\rangle_{nn}\langle\psi|
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Operator Magnetization
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\hat{N} & = & \sum_{i=1}^{N}\hat{N}_{i}\\
+\hat{N}_{i} & = & \left(\hat{J}_{0,i}+\frac{1}{2}\right)
+\end{eqnarray*}
+
+\end_inset
+
+has mean value:
+\begin_inset Formula 
+\begin{eqnarray*}
+\langle\psi|\hat{N}|\psi\rangle & = & \sum_{i=1}^{N}\langle\psi_{i}|\hat{N}_{i}|\psi_{i}\rangle\\
+ & = & \frac{1}{2}\sum_{i=1}^{N}\left|\psi_{i}\right|^{2}=\frac{1}{2}(\psi|\psi)
+\end{eqnarray*}
+
+\end_inset
+
+or
+\begin_inset Formula 
+\[
+_{n}\langle\psi|\hat{N}|\psi\rangle_{n}=\sum_{i=1}^{N}\left|\beta_{i}\right|^{2}
+\]
+
+\end_inset
+
+Finally if 
+\begin_inset Formula $\hat{H}=\hat{N}$
+\end_inset
+
+ is the Hamiltonian then
+\begin_inset Formula 
+\[
+\frac{d\beta_{i}}{dt}=-i\frac{\partial H}{\partial\overline{\beta}_{i}}=-i\beta_{i}
+\]
+
+\end_inset
+
+so as expected
+\begin_inset Formula 
+\[
+\beta_{i}\left(t\right)=\beta_{i}\left(0\right)e^{-it}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Localized coherent states
+\end_layout
+
+\begin_layout Standard
+There are well defined coherent states of the Torus denoted by
+\begin_inset Formula 
+\[
+|z)\in\mathcal{H}_{N},\quad z\in\mathbb{C}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+With a given 
+\begin_inset Formula $\phi\in\mathbb{C}$
+\end_inset
+
+, this gives special 
+\begin_inset Quotes eld
+\end_inset
+
+field coherents states
+\begin_inset Quotes erd
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+|\phi|z)\rangle\in\mathcal{H}_{tot}
+\]
+
+\end_inset
+
+called 
+\series bold
+localized coherent states.
+\end_layout
+
+\begin_layout Standard
+Explicitely:
+\begin_inset Formula 
+\begin{eqnarray*}
+|\phi|z)\rangle & = & \exp\left(\phi\sum_{i=1}^{N}(i|z)\,\hat{J}_{+,i}\right)|0\rangle\\
+ & = & \exp\left(\phi(\hat{J}_{+}|z)\right)|0\rangle
+\end{eqnarray*}
+
+\end_inset
+
+from this last expression, because it depends algebraically on 
+\begin_inset Formula $\phi,z$
+\end_inset
+
+, it is clear that the familly of states 
+\begin_inset Formula $\left(|\phi|z)\rangle\right)_{(\phi,z)\in\mathbb{C}^{2}}$
+\end_inset
+
+ form a 2 dim algebraic submanifold 
+\begin_inset Formula $\mathcal{F}$
+\end_inset
+
+ of 
+\begin_inset Formula $P\left(\mathcal{H}_{tot}\right)$
+\end_inset
+
+.
+\begin_inset Formula 
+\[
+|\psi_{i}\rangle=\exp\left(\phi(i|z)\,\hat{J}_{+,i}\right)|0_{i}\rangle
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There norm is
+\begin_inset Formula 
+\[
+\langle\phi|z)|\phi|z)\rangle=\prod_{i=1}^{N}\left(1+\left|\phi\right|^{2}\left|(i|z)\right|^{2}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+_{n}\langle\phi,z|\hat{N}|\phi,z\rangle_{n}=\left(\prod_{i=1}^{N}\left(1+\left|\phi\right|^{2}\left|(i|z)\right|^{2}\right)^{-1}\right)\left(\frac{1}{2}\left|\phi\right|^{2}(z|z)\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Two questions arise
+\end_layout
+
+\begin_layout Paragraph
+Questions
+\end_layout
+
+\begin_layout Enumerate
+Is the Manifold 
+\begin_inset Formula $\mathcal{F}$
+\end_inset
+
+ complete? (i.e.
+ span all 
+\begin_inset Formula $\mathcal{H}_{tot}$
+\end_inset
+
+)?
+\end_layout
+
+\begin_layout Enumerate
+Find a closure relation?
+\end_layout
+
+\begin_layout Standard
+Elements to answer: 
+\end_layout
+
+\begin_layout Itemize
+One can look for a state ortohognal to every localized coherent state.
+\end_layout
+
+\begin_layout Itemize
+Compute the scalar product 
+\begin_inset Formula $\langle|\phi|z)|\phi|z)\rangle$
+\end_inset
+
+ which gives the 
+\end_layout
+
+\begin_layout Section
+Model
+\end_layout
+
+\begin_layout Subsection
+Hamiltonian
+\end_layout
+
+\begin_layout Standard
+Proposed by Gregoire Misguish:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\hat{H}_{t} & = & \left(1-t\right)\hat{H}_{0}+t\hat{H}_{1}\\
+\hat{H}_{0} & = & 2\sum_{i=1}^{N}\hat{J}_{0,i}:\textrm{ Magnetic \ensuremath{z-}Field}\\
+\hat{H}_{1} & = & -4\sum_{i=1}^{N}\hat{J}_{x,i}\hat{J}_{x,i+1}\textnormal{: Ising}-x
+\end{eqnarray*}
+
+\end_inset
+
+An other one:
+\begin_inset Formula 
+\[
+\hat{H}_{XYZ}=4C_{x}\sum_{i=1}^{N}\hat{J}_{x,i}\hat{J}_{x,i+1}+4C_{y}\sum_{i=1}^{N}\hat{J}_{y,i}\hat{J}_{y,i+1}+4C_{z}\sum_{i=1}^{N}\hat{J}_{z,i}\hat{J}_{z,i+1}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $H_{XYZ}$
+\end_inset
+
+if the 
+\series bold
+Heisenberg model
+\series default
+ if 
+\begin_inset Formula $C_{x}=C_{y}=C_{z}$
+\end_inset
+
+, or the 
+\series bold
+XXZ model
+\series default
+ if 
+\begin_inset Formula $C_{x}=C_{y}\neq C_{z}$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+A more general one:
+\begin_inset Formula 
+\[
+H_{C_{x},C_{y},C_{z},C_{0}}=\hat{H}_{XYZ}+C_{0}\hat{H}_{0}
+\]
+
+\end_inset
+
+for example 
+\begin_inset Formula $\hat{H}_{t}$
+\end_inset
+
+ is obtained with 
+\begin_inset Formula $C_{x}=-t$
+\end_inset
+
+, 
+\begin_inset Formula $C_{y}=C_{z}=0$
+\end_inset
+
+, 
+\begin_inset Formula $C_{0}=1-t$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Remark: one can write: 
+\begin_inset Formula 
+\[
+\hat{J}_{x}=\frac{1}{2}\left(\hat{J}_{+}+\hat{J}_{-}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\hat{J}_{y}=\frac{i}{2}\left(\hat{J}_{-}-\hat{J}_{+}\right)
+\]
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+Hamiltonian 
+\begin_inset Formula $\hat{H}_{0}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\hat{H}_{0}=2\sum_{i=1}^{N}\hat{J}_{0,i}:\textrm{ Magnetic \ensuremath{z-}Field}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+its spectrum is 
+\begin_inset Formula 
+\begin{eqnarray*}
+E_{i} & = & 2i-N=-N,-N+2,\ldots,N,\\
+i & = & 0,1,2,\ldots,N
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Level 
+\begin_inset Formula $E_{i}$
+\end_inset
+
+ corresponds to a number 
+\begin_inset Formula $i$
+\end_inset
+
+ of spins up.
+ There is 
+\begin_inset Formula $C_{N}^{i}$
+\end_inset
+
+ possibilities.
+\end_layout
+
+\begin_layout Standard
+So the multiplicity is
+\begin_inset Formula 
+\[
+d_{i}=C_{N}^{i}=1,N,...,N,1
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Hamiltonian 
+\begin_inset Formula $\hat{H}_{1}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\hat{H}_{1}=-4\sum_{i=1}^{N}\hat{J}_{x,i}\hat{J}_{x,i+1}\textnormal{: Ising}-x
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Level 
+\begin_inset Formula $E_{j}$
+\end_inset
+
+ corresponds to 
+\begin_inset Formula $2j$
+\end_inset
+
+ frontiers (different closed spins), with
+\begin_inset Formula 
+\[
+j=0,1,2,\ldots,\left[N/2\right]
+\]
+
+\end_inset
+
+ Its energy is 1 for one frontier, and there is an even number of frontiers,
+ so
+\begin_inset Formula 
+\[
+E_{j}=-N+4j=-N,-N+4,\ldots,\left(-N+4\left[\frac{N}{2}\right]\right)
+\]
+
+\end_inset
+
+with multiplicity:
+\begin_inset Formula 
+\[
+d_{j}=2C_{N}^{j}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Matrix elements
+\end_layout
+
+\begin_layout Standard
+In the standard basis 
+\begin_inset Formula $|s\rangle=|s_{1},\ldots,s_{N}\rangle$
+\end_inset
+
+, with dimension 
+\begin_inset Formula $2^{N}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+On has
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\hat{J}_{x}=\frac{1}{2}\left(\hat{J}_{+}+\hat{J}_{-}\right)\equiv_{basis(+,-)}\frac{1}{2}\left(\begin{array}{cc}
+0 & 1\\
+1 & 0
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\hat{J}_{y}=\frac{i}{2}\left(\hat{J}_{-}-\hat{J}_{+}\right)\equiv\frac{1}{2}\left(\begin{array}{cc}
+0 & -i\\
+i & 0
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\hat{J}_{z}\equiv\frac{1}{2}\left(\begin{array}{cc}
+1 & 0\\
+0 & -1
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So if:
+\begin_inset Formula 
+\begin{eqnarray*}
+s & = & 0\quad for\quad|-\rangle\\
+ & = & 1\quad for\quad|+\rangle
+\end{eqnarray*}
+
+\end_inset
+
+and 
+\begin_inset Formula 
+\[
+\overline{s}=1-s
+\]
+
+\end_inset
+
+then
+\begin_inset Formula 
+\[
+2\hat{J}_{x}|\overline{s}\rangle=|s\rangle
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+2\hat{J}_{y}|\overline{s}\rangle=i\left(1-2s\right)|s\rangle
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+2\hat{J}_{z}|s\rangle=\left(2s-1\right)|s\rangle
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Numerical spectrum
+\end_layout
+
+\begin_layout Standard
+programme 
+\series bold
+spins-reseau.cc.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename spectre1.gif
+	lyxscale 80
+	scale 80
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename spectre2.gif
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename spectre3.gif
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Classical equation of motion for field coherent states
+\end_layout
+
+\begin_layout Standard
+As explained above,
+\begin_inset Formula 
+\[
+\frac{d\beta_{i}}{dt}=-i\frac{\partial H}{\partial\overline{\beta}_{i}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+with
+\begin_inset Formula 
+\begin{eqnarray*}
+H & = & _{n}\langle\psi|\hat{H}|\psi\rangle_{n}\\
+ & = & (1-t)H_{0}+tH_{1}
+\end{eqnarray*}
+
+\end_inset
+
+with
+\begin_inset Formula 
+\[
+H_{0}=2\sum_{i=1}^{N}\left\langle J_{0,i}\right\rangle 
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+H_{1}=-4\sum_{i=1n}^{N}\langle\psi|\hat{J}_{x,i}\hat{J}_{x,i+1}|\psi\rangle_{n}=-4\sum_{i=1}^{N}\left\langle \hat{J}_{x,i}\right\rangle \left\langle \hat{J}_{x,i+1}\right\rangle 
+\]
+
+\end_inset
+
+So
+\begin_inset Formula 
+\[
+\frac{d\beta_{i}}{dt}=(-i)\left(1-t\right)\partial_{\overline{\beta}_{i}}\left\langle J_{0,i}\right\rangle +4it\left(\left\langle \hat{J}_{x,i-1}\right\rangle +\left\langle \hat{J}_{x,i+1}\right\rangle \right)\partial_{\overline{\beta}_{i}}\left\langle J_{x,i}\right\rangle 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Minimum of energy
+\end_layout
+
+\begin_layout Standard
+First suppose that the 
+\series bold
+coherent state field is uniform
+\series default
+:
+\begin_inset Formula 
+\[
+\beta_{i}=\beta\quad\forall i
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+then in spherical coordinates,
+\begin_inset Formula 
+\[
+\left\langle H\right\rangle =\left(1-t\right)N\cos\theta-tN\sin^{2}\theta\cos^{2}\varphi
+\]
+
+\end_inset
+
+which is plot with 
+\series bold
+dessin_H.C
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename energy1.gif
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename energy3.gif
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename energy4.gif
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename energy2.gif
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $t=0$
+\end_inset
+
+, the minimum is at 
+\begin_inset Formula $\theta=\pi$
+\end_inset
+
+ (spin down 
+\begin_inset Formula $|-_{z}>$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $t=1$
+\end_inset
+
+, there are two equal minima at 
+\begin_inset Formula $\theta=\pi/2$
+\end_inset
+
+ and 
+\begin_inset Formula $\varphi=0$
+\end_inset
+
+ and 
+\begin_inset Formula $\varphi=\pi$
+\end_inset
+
+ (spin 
+\begin_inset Formula $|+_{x}>$
+\end_inset
+
+ or 
+\begin_inset Formula $|-_{x}>$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+Analitically, we have to solve
+\begin_inset Formula 
+\begin{eqnarray*}
+0 & = & \partial_{\theta}\left\langle H\right\rangle =-\left(1-t\right)N\sin\theta-2tN\sin\theta\cos\theta\cos^{2}\varphi\\
+\Leftrightarrow-\frac{1-t}{2t} & \sin\theta=\sin\theta & \cos\theta\cos^{2}\varphi
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+0=\partial_{\varphi}\left\langle H\right\rangle =tN\sin^{2}\theta\sin2\varphi
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The minimum is then:
+\end_layout
+
+\begin_layout Standard
+for 
+\begin_inset Formula $t<1/3$
+\end_inset
+
+, at 
+\begin_inset Formula $\theta=\pi$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+for 
+\begin_inset Formula $t>1/3$
+\end_inset
+
+, at 
+\begin_inset Formula $\varphi=0,\pi$
+\end_inset
+
+ and 
+\begin_inset Formula $\cos\theta=-\frac{1-t}{2t}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The value of energy is then
+\begin_inset Formula 
+\begin{eqnarray*}
+E_{min} & = & -\left(1-t\right)N\qquad\textrm{for }t<1/3\\
+ & = & -\left(\frac{1-2t+5t^{2}}{4t}\right)N\qquad\textrm{for }t>1/3
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Plot in black with 
+\series bold
+spins_reseau.cc.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename energy_E0.gif
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Compared with exact result in red (from Jordan-Wigner trick):
+\begin_inset Formula 
+\[
+E_{0}\left(t\right)=-tN\left(\int_{0}^{2\pi}\frac{dk}{2\pi}\sqrt{2\lambda\cos\left(k\right)+\lambda^{2}+1}\right),\quad\lambda=\frac{1-t}{t}=0\rightarrow\infty
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Remark: there is a symmetry
+\begin_inset Formula 
+\begin{eqnarray*}
+E_{0}\left(1-t\right) & = & -(1-t)N\left(\int_{0}^{2\pi}\frac{dk}{2\pi}\sqrt{2\lambda^{-1}\cos\left(k\right)+\lambda^{-2}+1}\right)\\
+ & = & -t\lambda N\left(\int_{0}^{2\pi}\frac{dk}{2\pi}\sqrt{2\lambda^{-1}\cos\left(k\right)+\lambda^{-2}+1}\right)\\
+ & = & E_{0}\left(t\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Maximum of energy
+\end_layout
+
+\begin_layout Standard
+is for 
+\begin_inset Formula $\theta=0$
+\end_inset
+
+, and gives
+\begin_inset Formula 
+\[
+E_{max}\left(t\right)=\left(1-t\right)N
+\]
+
+\end_inset
+
+which shows that the upper spectrum is bad described for 
+\begin_inset Formula $t\simeq1$
+\end_inset
+
+ (Ising dynamics).
+ The reason is that the eigenstate of maximum energy is an anti-ferro state,
+ bad described by our trial state.
+\end_layout
+
+\begin_layout Subsection
+Fourier basis @@
+\end_layout
+
+\begin_layout Standard
+Because 
+\begin_inset Formula $\hat{H}$
+\end_inset
+
+ is invariant by translation, we try to express it after a Fourier transform
+ 
+\begin_inset Formula $(z_{n})\rightarrow\left(z_{m}\right)$
+\end_inset
+
+, in order to decouple sectors of different momentum 
+\begin_inset Formula $m$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray}
+(m|\psi) & = & \frac{1}{\sqrt{N}}\sum_{n=0}^{N-1}\exp(-i\frac{2\pi}{N}nm)\,\,\psi_{n}\label{e:znm}\\
+ & = & \sum_{n=0}^{N-1}(m|n)(n|\psi)
+\end{eqnarray}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Recall of notations for operators:
+\begin_inset Formula 
+\[
+(\hat{A}|i)\hat{=}\hat{A}_{i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+and for 
+\begin_inset Formula $|\psi)\in\mathbb{C}^{N}$
+\end_inset
+
+,
+\begin_inset Formula 
+\[
+\hat{A}_{\psi}=(\hat{A}|\psi)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And define:
+\begin_inset Formula 
+\[
+(i|\hat{A})\hat{=}\left((\hat{A}|i)\right)^{+}=\hat{A}_{i}^{+}=(\hat{A}^{+}|i)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So that
+\begin_inset Formula 
+\begin{eqnarray*}
+(\hat{A}|\psi)^{+} & = & \left(\sum_{i}\psi_{i}\hat{A}_{i}\right)^{+}\\
+ & = & \left(\sum_{i}\overline{\psi_{i}}\left(\hat{A}_{i}\right)^{+}\right)\\
+ & = & \sum_{i}(\psi|i)(i|\hat{A})\\
+ & = & (\psi|\hat{A})
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We define:
+\begin_inset Formula 
+\[
+\hat{J}_{+,m}=\sum_{n}(\hat{J}_{+}|n)\,(n|m)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proposition
+The operators basis 
+\begin_inset Formula $\hat{J}_{0,m}$
+\end_inset
+
+,
+\begin_inset Formula $\hat{J}_{\pm,m}$
+\end_inset
+
+, for 
+\begin_inset Formula $m=1\rightarrow N$
+\end_inset
+
+, have algebra relations:
+\begin_inset Formula 
+\[
+\left[\hat{J}_{+,m},\hat{J}_{-,m'}\right]=2\hat{J}_{0,m+m'}
+\]
+
+\end_inset
+
+and give a new decomposition of the whole space:
+\begin_inset Formula 
+\[
+\mathcal{H}_{tot}=\bigotimes_{i=1}^{N}\mathcal{H}_{m,i}=\underbrace{\mathbb{C}^{2}\otimes\ldots\otimes\mathbb{C}^{2}}_{N\textrm{ }}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+One has
+\begin_inset Formula 
+\begin{eqnarray*}
+\left[\hat{J}_{+,m},\hat{J}_{-,m'}\right] & = & \hat{J}_{+,m}\hat{J}_{-,m'}-\hat{J}_{-,m'}\hat{J}_{+,m}\\
+ & = & \sum_{n,n'}(J_{+}|n)(n|m)(J_{-}|n')(n'|m')-(J_{-}|n')(n'|m')(J_{+}|n)(n|m)\\
+ & = & \sum_{n,n'}\left((J_{-}|n')(J_{+}|n)+2\delta_{n,n'}J_{0,n}\right)(n|m)(n'|m')-(J_{-}|n')(n'|m')(J_{+}|n)(n|m)\\
+ & = & \sum_{n}2J_{0,n}(n|m)(n|m')\\
+ & = & \sum_{n}2(J_{0}|n)(n|m+m')\\
+ & = & 2J_{0,m+m'}
+\end{eqnarray*}
+
+\end_inset
+
+Remak: in case of algebra 
+\begin_inset Formula $\left[a_{n}^{+},a_{n'}\right]=\delta_{n,n'}I$
+\end_inset
+
+, one obtains instead 
+\begin_inset Formula 
+\[
+\left[a_{m}^{+},a_{m'}\right]=...=\sum_{n}2(I|n)(n|m+m')=2\sum_{n}(n|m+m')=2\sqrt{N}\delta_{m,(-m')}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "/home/faure/articles/articles"
+options "amsalpha"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
