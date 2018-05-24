@@ -1,3 +1,9 @@
+#include <complex>
+#include <armadillo>
+
+using namespace std;
+using namespace arma;
+
 void force(cx_vec&, cx_vec&, cx_mat&, cx_mat&, cx_mat&, cx_vec&);
 /*
 

@@ -4,7 +4,8 @@
 
 // ce qu'on aimerait comme bouton
 // choisir SIZE(>=2)
-// retourner G ou Gred (attention elles ne sont pas de la meme taille)
+// retourner curvature(...) ou reducedCurvature(...) (attention elles ne sont pas de la meme taille)
+// afficher l'état d'équilibre (eq_m calculé au début de la fonction curvature)
 
 #define JJ -0.9
 
@@ -15,7 +16,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
-
+#include <complex>
+#include <dynamics.h>
 
 using namespace std;
 
