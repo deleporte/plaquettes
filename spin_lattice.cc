@@ -291,7 +291,7 @@ void Reseau::Dessin_spectre()
 {
 	int NJ=500; // discretisation de J
 
-	TCanvas *c = new TCanvas("Spectre","Spectre",0,0,300,300);
+	TCanvas *c = new TCanvas("Spectre","Spectre",0,0, 500, 500);
 	TH1F *h= c->DrawFrame(J1,-N,J2,N);
 	h->SetXTitle("J");
 	h->SetYTitle("E");
