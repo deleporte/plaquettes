@@ -1,7 +1,9 @@
 // -*- compile-command: "g++ main.cc curvature.cc -o myprog.exe -O2 -larmadillo -std=c++11" -*-
 
 
-// commentaire a enlever
+// ce qu'on aimerait comme bouton
+// choisir SIZE(>=2)
+// retourner G ou Gred (attention elles ne sont pas de la meme taille)
 
 #define SIZE 2
 #define J -0.9
@@ -27,7 +29,7 @@ int main(int argc, char* argv[]){
   //double* Cr = NULL;
   //double* Ci = NULL;
   //double* ham = NULL;
-  mat Gred,T;
+  mat Gred,T,G;
   cx_mat vel,ver;
   //double theta;
   //lkmat* T= NULL;
@@ -70,12 +72,12 @@ int main(int argc, char* argv[]){
   cout<<"C initialized."<<endl;
   diag(C,w,vel,ver,T);
   cout<<"Markov matrix diagonalized."<<endl;
-  reducedCurvature(w,vel,ver,Gred); 
-  for(i=0; i<pow(2,SIZE-1); i++){
-    for(j=0; j<pow(2,SIZE-1); j++){
-      printf("G[%d,%d]=%f\n",i,j,Gred(i,j));
-    }
-  }
+  reducedCurvature(w,vel,ver,Gred);
+  curvature(w,vel,ver,G);
+  cout<<"G="<<G<<endl;
+  cout<<"spectrum="<<eig_sym(G)<<endl;
+  cout<<"Gred="<<Gred<<endl;
+  cout<<"spectrum="<<eig_sym(Gred)<<endl;
   
   // C=generate_C(SIZE,0.1,1.1);
   // Cr=malloc((int)pow(2,SIZE)*sizeof(double));

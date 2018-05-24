@@ -45,6 +45,7 @@ void diag(vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, mat& T)
   uvec indices=sort_index(abs(w),"descend"); //sort eigenvalues according to their abs value
   w=w(indices);
   ver=ver.cols(indices); //sort right eigenvectors accordingly
+  cout<<det(ver)<<endl;
   inv(vel,ver);
   //eigvals(T,dim,wr,wi,vel,ver); //à changer pour utiliser plutot armadillo
   //return T;
@@ -94,7 +95,7 @@ void curvature(cx_vec& w, cx_mat& vel, cx_mat& ver, mat& G){
   // }
     
   //G=malloc(dim*dim*sizeof(double));
-  G.zeros(w.size(),w.size());
+  G.zeros(dim,dim);
   
   // for(i=0; i<dim*dim; i++){
   //   if(i%(dim+1)){
@@ -205,6 +206,7 @@ void fullBasis(int d, mat& U){
     }
     //return U;
   }
+
 }
 
 void rotation(int d,mat& V){
@@ -220,6 +222,7 @@ void rotation(int d,mat& V){
       V(c,k)=pow(-1,sign)*pow(2,-0.5*d);
     }
   }
+
   //return V;
 }
 
@@ -266,6 +269,6 @@ void reducedCurvature(cx_vec& w, cx_mat& vel, cx_mat& ver, mat& Gred){
   // }
   // free(UV);
   // free(UVG);
-  Gred=U*V*G*(V.t())*(U.t());
+  Gred=U*(V.t())*G*V*(U.t());
   //Gred=G;
 }
