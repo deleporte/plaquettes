@@ -34,8 +34,9 @@ public:
 
 
 	//... documentation
-	void documentation_en_lyx(); // make_gui = M("Help","spins-reseau.lyx")
-	void documentation_en_pdf(); // make_gui = M("Help","spins-reseau.pdf")
+	void documentation_Fred_en_lyx(); // make_gui = M("Help","spins-reseau.lyx")
+	void documentation_Fred_en_pdf(); // make_gui = M("Help","spins-reseau.pdf")
+	void documentation_Alix_en_pdf(); // make_gui = M("Help","curvature.pdf")
 
 	//.....................
 	
