@@ -128,8 +128,6 @@ ENV/
 *.a
 *.lib
 
-# Compiled objects
-*.o
 
 # Executables
 *.exe

@@ -37,7 +37,8 @@ Id_Reseau_N_N1,
 Id_Reseau_N_N2, 
 Id_Reseau_B_Dessin_ecart, 
 Id_Reseau_N_SIZE, 
-Id_Reseau_B_Curvature_testing
+Id_Reseau_B_Curvature_testing, 
+Id_Reseau_B_Dynamics_testing
 }; 
 
 int X=300, Y=150; // taille en pixels
@@ -97,6 +98,9 @@ Com::Com(Reseau *pReseau)
 	auto  *f_ZT_Curvature = fZT->AddTab("Curvature");
     auto  *f_ZT_Curvature_0 = new TGHorizontalFrame(f_ZT_Curvature, X, Y);
     f_ZT_Curvature->AddFrame(f_ZT_Curvature_0, fLH_L);
+	auto  *f_ZT_Dynamics = fZT->AddTab("Dynamics");
+    auto  *f_ZT_Dynamics_0 = new TGHorizontalFrame(f_ZT_Dynamics, X, Y);
+    f_ZT_Dynamics->AddFrame(f_ZT_Dynamics_0, fLH_L);
 
 	//-- d'apres la ligne de la classe Reseau: 
     // int N = 4;  //  make_gui =   N(ZC, ":N nombre de sites") help = "conseil N<=10"
@@ -210,6 +214,13 @@ Com::Com(Reseau *pReseau)
     Reseau_Curvature_testing->Associate(this);
     f_ZT_Curvature_0->AddFrame(Reseau_Curvature_testing,  fLH_L);
 
+	//-- d'apres la ligne de la classe Reseau: 
+    // void Dynamics_testing(); // make_gui = B(ZT("Dynamics"), "Dynamics testing") help "Test."
+	Reseau_Dynamics_testing = new TGTextButton(f_ZT_Dynamics_0, "Dynamics testing", Id_Reseau_B_Dynamics_testing);
+    Reseau_Dynamics_testing->SetToolTipText("Test.");
+    Reseau_Dynamics_testing->Associate(this);
+    f_ZT_Dynamics_0->AddFrame(Reseau_Dynamics_testing,  fLH_L);
+
 	// fenetre  generale  ===============
 	
 	MapSubwindows();
@@ -300,6 +311,13 @@ Bool_t Com::ProcessMessage(Long_t msg, Long_t p1, Long_t p2)
     if(M==1 && S==3 && p1== Id_Reseau_B_Curvature_testing )
     {
          p_Reseau->Curvature_testing();
+         p_com->Met_a_jour();
+    }
+
+//-- B: Bouton
+    if(M==1 && S==3 && p1== Id_Reseau_B_Dynamics_testing )
+    {
+         p_Reseau->Dynamics_testing();
          p_com->Met_a_jour();
     }
 

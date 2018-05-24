@@ -17,7 +17,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <complex>
-#include <dynamics.h>
+//#include <dynamics.h>
 
 using namespace std;
 

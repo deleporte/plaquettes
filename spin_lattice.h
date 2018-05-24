@@ -89,6 +89,9 @@ public:
 	cx_vec w;
 	mat Gred,T,G;
 	cx_mat vel,ver;
+	vec Cr,Ci;
+	cx_vec Cc;
+	//cx_mat H;
 
 	int SIZE = 2;  //  make_gui =   N(ZT("Curvature"), ": SIZE") help = "conseil SIZE>=2"
 	
@@ -96,6 +99,7 @@ public:
 
 
 	void Curvature_testing();  // make_gui =   B(ZT("Curvature"), "Curvature testing") help = "test. Donner ..."
+	void Dynamics_testing(); // make_gui = B(ZT("Dynamics"), "Dynamics testing") help "Test."
 
 
 

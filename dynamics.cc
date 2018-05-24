@@ -29,7 +29,7 @@ void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& 
   int sqrthamdim=ham.n_cols;
   int dim=C.size();
   F.zeros(dim);
-  deqm.zeros(dim*dim*sqrthamdim/4);
+  deq_m.zeros(dim*dim*sqrthamdim/4);
   //for(i=0; i<dim*2; i++){
   //F[i]=0;
   //}
@@ -81,7 +81,7 @@ void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& 
 	  if(1){
 	    for(l=0; l<dim; l++){
 	      F(l)+=tval*w(k)/(1.-w(k))*vel(l,k)*ver(k,(i/(dim*sqrthamdim/4)));
-	      F(l)+=tval*w(k)/(1-w(k))*vel((i%dim),k)*ver(k,l)*eq_m(i%dim)/eq_m(l);
+	      F(l)+=tval*w(k)/(1.-w(k))*vel((i%dim),k)*ver(k,l)*eq_m(i%dim)/eq_m(l);
 	    }
 	    //for(l=0; l<dim; l++){
 	    //F[l+dim]+=tvali*eigvr[k]/(1-eigvr[k])*eigveleft[l*dim+k]
@@ -154,7 +154,7 @@ double meanval(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham){
   //Cnorm=malloc(dim*sizeof(double));
   //eq_m=malloc(dim*sizeof(double));
   //deq_m=malloc(dim*dim*sqrthamdim/4*sizeof(double));
-  deqm.zeros(dim*dim*sqrthamdim/4);
+  deq_m.zeros(dim*dim*sqrthamdim/4);
   //for(i=0; i<dim; i++){
   //  Cnorm[i]=Cr[i]*Cr[i]+Ci[i]*Ci[i];
   //}
@@ -215,7 +215,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //double* F=NULL;
   //double* Ctr=NULL;
   //double* Cti=NULL;
-  mat UV,T;
+  mat UV,T,U,V;
   //double* Fred=NULL;
   cx_mat vel,ver;
   //double* eigvr=NULL;
@@ -224,11 +224,13 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //double* eigveright=NULL;
   int i,j,k;
   int Cdim=C.size();
-  int hamdim=ham.size()
+  int hamdim=ham.size();
   int d=log(0.9+Cdim)/log(2);
   complex<double> tval;//r,tvali;
 
-  UV=fullBasis(d)*(rotation(d).t());
+  fullBasis(d,U);
+  rotation(d,V);
+  UV=U*(V.t());
   // U=fullBasis(d);
   // V=rotation(d);
   // UV=malloc(Cdim*Cdim/2*sizeof(double));
@@ -265,7 +267,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   //   printf("%lf\n",Gred[i]);
   // }
-  if(!Gred.i_finite()){
+  if(!Gred.is_finite()){
     cout<<"Nan error in curv for k1."<<endl;
   }
   Gred=inv_sympd(Gred);
@@ -277,7 +279,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   //   printf("%lf\n",Gred[i]);
   // }
-  if(!Gred.i_finite()){
+  if(!Gred.is_finite()){
     cout<<"Nan error in inverse curv for k1."<<endl;
   }
   //I.2 Compute the force in the given basis
@@ -288,7 +290,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //     i=2*Cdim;
   //   }
   // }
-  if(!F.i_finite()){
+  if(!F.is_finite()){
     cout<<"Nan error in force for k1."<<endl;
   }
   Fred=UV*F;
@@ -395,7 +397,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   //   printf("%lf\n",Gred[i]);
   // }
-  if(!Gred.i_finite()){
+  if(!Gred.is_finite()){
     cout<<"Nan error in curv for k2."<<endl;
   }
   Gred=inv_sympd(Gred);
@@ -407,7 +409,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   //   printf("%lf\n",Gred[i]);
   // }
-  if(!Gred.i_finite()){
+  if(!Gred.is_finite()){
     cout<<"Nan error in inverse curv for k2."<<endl;
   }
   //II.3 Compute the force in the given basis
@@ -418,7 +420,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //     i=2*Cdim;
   //   }
   // }
-  if(!F.i_finite()){
+  if(!F.is_finite()){
     cout<<"Nan error in force for k2."<<endl;
   }
   Fred=UV*F;
@@ -520,7 +522,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   //   printf("%lf\n",Gred[i]);
   // }
-  if(!Gred.i_finite()){
+  if(!Gred.is_finite()){
     cout<<"Nan error in curv for k3."<<endl;
   }
   Gred=inv_sympd(Gred);
@@ -532,7 +534,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   //   printf("%lf\n",Gred[i]);
   // }
-  if(!Gred.i_finite()){
+  if(!Gred.is_finite()){
     cout<<"Nan error in inverse curv for k3."<<endl;
   }
   //III.3 Compute the force in the given basis
@@ -543,7 +545,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //     i=2*Cdim;
   //   }
   // }
-  if(!F.i_finite()){
+  if(!F.is_finite()){
     cout<<"Nan error in force for k3."<<endl;
   }
   Fred=UV*F;
@@ -647,7 +649,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   //   printf("%lf\n",Gred[i]);
   // }
-  if(!Gred.i_finite()){
+  if(!Gred.is_finite()){
     cout<<"Nan error in curv for k4."<<endl;
   }
   Gred=inv_sympd(Gred);
@@ -659,7 +661,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   //   printf("%lf\n",Gred[i]);
   // }
-  if(!Gred.i_finite()){
+  if(!Gred.is_finite()){
     cout<<"Nan error in inverse curv for k4."<<endl;
   }
   //IIII.3 Compute the force in the given basis
@@ -670,7 +672,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //     i=2*Cdim;
   //   }
   // }
-  if(!F.i_finite()){
+  if(!F.is_finite()){
     cout<<"Nan error in force for k4."<<endl;
   }
   Fred=UV*F;
@@ -715,7 +717,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   
   //free(Fred);
   //free(Gred);
-  k3=(UV.t())*kred;
+  k4=(UV.t())*kred;
   // k1=malloc(2*Cdim*sizeof(double));
   // for(i=0; i<Cdim; i++){
   //   k1[i]=0;

@@ -45,6 +45,7 @@ public :
 	TGTextButton *Reseau_Dessin_ecart;
 	TGNumberEntry *Reseau_SIZE;
 	TGTextButton *Reseau_Curvature_testing;
+	TGTextButton *Reseau_Dynamics_testing;
 
 	Bool_t ProcessMessage(Long_t msg, Long_t p1, Long_t p2);
 	void  Met_a_jour();

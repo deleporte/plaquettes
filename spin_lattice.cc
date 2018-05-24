@@ -1,4 +1,5 @@
 #include "curvature.h"
+#include "dynamics.h"
 
 #include "spin_lattice.h"
 
@@ -469,4 +470,16 @@ void Reseau::Curvature_testing()
 	cout<<"spectrum="<<eig_sym(G)<<endl;
 	cout<<"Gred="<<Gred<<endl;
 	cout<<"spectrum="<<eig_sym(Gred)<<endl;
+}
+
+void Reseau::Dynamics_testing()
+{
+  srand(time(NULL));
+  generate_C(SIZE,0.1,1.1,Cr);
+  generate_C(SIZE,0.1,1.1,Ci);
+  Cc=Cr+I_*Ci;
+  H.zeros(4,4);
+  H(0,0)=1;
+
+  oneStep(Cc,H,0.001);
 }
