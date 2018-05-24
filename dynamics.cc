@@ -21,7 +21,7 @@ void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& 
   vec eq_m=abs(ver.col(indices(0)));
   //double tvalr,tvali,ttvalr,ttvali;
   complex tval;
-  vec Cnorm=abs(C);
+  vec Cnorm=abs(C)*abs(C);
   double norm;
   int sqrthamdim=ham.n_cols;
   int dim=C.size();
@@ -141,77 +141,70 @@ double meanval(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham){
   double val=0;
   double norm=0;
   int i,j,k,l;
-  double* deq_m;
+  vec deq_m;
   vec eq_m=abs(vel.col(indices(0)));
-  vec Cnorm=abs(C);
-  double tvalr,tvali,ttvalr,ttvali;
-  int sqrthamdim=(int)sqrt(hamdim);
-  Cnorm=malloc(dim*sizeof(double));
-  eq_m=malloc(dim*sizeof(double));
-  deq_m=malloc(dim*dim*sqrthamdim/4*sizeof(double));
-  for(i=0; i<dim; i++){
-    Cnorm[i]=Cr[i]*Cr[i]+Ci[i]*Ci[i];
+  vec Cnorm=abs(C)*abs(C);
+  //double tvalr,tvali,ttvalr,ttvali;
+  complex tval;
+  int sqrthamdim=ham.n_cols;
+  int dim=C.size();
+  //Cnorm=malloc(dim*sizeof(double));
+  //eq_m=malloc(dim*sizeof(double));
+  //deq_m=malloc(dim*dim*sqrthamdim/4*sizeof(double));
+  deqm.zeros(dim*dim*sqrthamdim/4);
+  //for(i=0; i<dim; i++){
+  //  Cnorm[i]=Cr[i]*Cr[i]+Ci[i]*Ci[i];
+  //}
+  //normalize
+  norm=0;
+  for(j=0; j<dim; j++){
+    norm+=eq_m[j];
   }
-  for(i=0; i<dim; i++){
-    if(fabs(eigvi[i])<0.00001 && eigvr[i]>0.99999){
-      for(j=0; j<dim; j++){
-	eq_m[j]=eigveright[i*dim+j];
-      }
-      //positive
-      if(eq_m[0]<0){
-	for(j=0; j<dim; j++){
-	  eq_m[j]=-eq_m[j];
-	}
-      }
-      //normalize
-      norm=0;
-      for(j=0; j<dim; j++){
-	norm+=eq_m[j];
-      }
-      for(j=0; j<dim; j++){
-	eq_m[j]/=norm;
-      }
-    }
+  for(j=0; j<dim; j++){
+    eq_m[j]/=norm;
   }
+  //compute the double equilibrium measure
   for(i=0; i<dim*dim*sqrthamdim/4; i++){
-    deq_m[i]=eq_m[i/(dim*sqrthamdim/4)];
+    deq_m(i)=eq_m(i/(dim*sqrthamdim/4));
     for(k=1; k<dim*sqrthamdim/4; k*=2){
-      deq_m[i]*=Cnorm[(i/k)%dim]/(Cnorm[(((i/k)%dim)/2)*2]+Cnorm[(((i/k)%dim)/2)*2+1]);
+      deq_m(i)*=Cnorm((i/k)%dim)/(Cnorm((((i/k)%dim)/2)*2)+Cnorm((((i/k)%dim)/2)*2+1));
     }
   }
-  free(eq_m);
+  //free(eq_m);
 
   for(j=0; j<sqrthamdim; j++){
     for(i=0; i<dim*dim*sqrthamdim/4; i++){
-      tvalr=deq_m[i];
-      tvalr*=ham[j*sqrthamdim+(i/(dim/2))%sqrthamdim];
-      tvali=0;
+      tval=deq_m[i];
+      tval*=ham[j*sqrthamdim+(i/(dim/2))%sqrthamdim];
+      //tvali=0;
       l=i%(dim/2)+j*dim/2+(i/(dim*sqrthamdim/2))*(dim*sqrthamdim/2);
       for(k=1; k<=dim*sqrthamdim/4; k*=2){
-	ttvalr=tvalr*Cr[(l/k)%dim]-tvali*Ci[(l/k)%dim];
-	ttvali=tvalr*Ci[(l/k)%dim]+tvali*Cr[(l/k)%dim];
-	tvalr=ttvalr;
-	tvali=ttvali;
-	ttvalr=tvalr*Cr[(i/k)%dim]+tvali*Ci[(i/k)%dim];
-	ttvali=-tvalr*Ci[(i/k)%dim]+tvali*Cr[(i/k)%dim];
-	tvalr=ttvalr/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
-	tvali=ttvali/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
+	tval=tval*C((l/k)%dim)/C((i/k)%dim);
+	// ttvalr=tvalr*Cr[(l/k)%dim]-tvali*Ci[(l/k)%dim];
+	// ttvali=tvalr*Ci[(l/k)%dim]+tvali*Cr[(l/k)%dim];
+	// tvalr=ttvalr;
+	// tvali=ttvali;
+	// ttvalr=tvalr*Cr[(i/k)%dim]+tvali*Ci[(i/k)%dim];
+	// ttvali=-tvalr*Ci[(i/k)%dim]+tvali*Cr[(i/k)%dim];
+	// tvalr=ttvalr/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
+	// tvali=ttvali/(pow(Cr[(i/k)%dim],2)+pow(Ci[(i/k)%dim],2));
       }
-      val+=tvalr;
+      val+=real(tval);
     }
   }
-  free(deq_m);
-  free(Cnorm);
+  //free(deq_m);
+  //free(Cnorm);
   return val;
 }
 
-void oneStep(double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double step){
+void oneStep(cx_vec& C, cx_mat& ham, double step){
+	     //double* Cr, double* Ci, int Cdim, double* ham, int hamdim, double step){
   //We must take large steps bc of computation time
   //We will use RK4 algorithm
   //double* Gred,Cnorm,k1,k2,k3,k4,kred,F,Ctr,Cti,U,V,UV,Fred;
-  double* Gred=NULL;
-  double* Cnorm=NULL;
-  double* k1=NULL;
+  mat Gred;
+  vec Cnorm;
+  cx_vec k1,k2,k3,k4,kred=NULL;
   double* k2=NULL;
   double* k3=NULL;
   double* k4=NULL;
