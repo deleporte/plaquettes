@@ -14,7 +14,7 @@ Outputs:
 Code status: nothing
 */
 
-void meanval(cx_vec&, cx_vec&, cx_mat&, cx_mat&, mat&);
+void meanval(cx_vec&, cx_vec&, cx_mat&, cx_mat&, cx_mat&);
 /*
 Computes the mean value of an observable
 
@@ -28,4 +28,4 @@ Outputs
    - returns a double containing the mean value
 */
 
-void oneStep(double*, double*, int, double*, int, double);
+void oneStep(cx_vec&, cx_mat&, double);
