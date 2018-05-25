@@ -27,7 +27,7 @@ void generate_C(int d, double m, double M, vec& vC){
 void Markov(vec& C, mat& T){
   int i;
   int dim=C.size();
-  cout<<dim<<endl;
+  //cout<<dim<<endl;
   //T=malloc(dim*dim*sizeof(double));
   T.zeros(dim,dim);
   for(i=0; i<dim; i++){
@@ -40,13 +40,16 @@ void Markov(vec& C, mat& T){
 void diag(vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, mat& T)
 {
   Markov(C,T); //computing Markov chain
-  cout<<"Markov matrix computed"<<endl;
+  //cout<<"Markov matrix computed"<<endl;
   eig_gen(w,vel,T); //eigenvalues and eigenvectors
   //uvec indices=sort_index(abs(w),"descend"); //sort eigenvalues according to their abs value
   //w=w(indices);
   //ver=ver.cols(indices); //sort right eigenvectors accordingly
-  cout<<det(vel)<<endl;
-  inv(ver,vel);
+  //cout<<det(vel)<<endl;
+  if(!inv(ver,vel)){
+    cout<<"Error while inverting eigenmatrix of the Markov chain"<<endl;
+    cout<<"Determinant: "<<real(det(vel))<<endl;
+  }
   //cout<<"Diagcheck:"<<vel*diagmat(w)*ver-T<<endl;
   //eigvals(T,dim,wr,wi,vel,ver); //à changer pour utiliser plutot armadillo
   //return T;
@@ -67,7 +70,7 @@ void curvature(cx_vec& w, cx_mat& vel, cx_mat& ver, mat& G){
   for(i=0; i<dim; i++){
     eq_m(i)/=norm;
   }
-  cout<<"equilibrium measure: "<<endl<<eq_m<<endl;
+  //cout<<"equilibrium measure: "<<endl<<eq_m<<endl;
   //eq_m=malloc(dim*sizeof(double));
   // if(1){
   //   if(1){
@@ -126,7 +129,7 @@ void curvature(cx_vec& w, cx_mat& vel, cx_mat& ver, mat& G){
       }
     }
   }
-  cout<<"Curvature computed !"<<endl;
+  //cout<<"Curvature computed !"<<endl;
 }
 
 void fullBasis(int d, mat& U){

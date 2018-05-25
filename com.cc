@@ -24,8 +24,9 @@ void Lance_com(Reseau *pReseau)
 //====== identifieurs (int) pour les messages de commandes
 enum Command_id 
 {
-Id_Reseau_M_documentation_en_lyx, 
-Id_Reseau_M_documentation_en_pdf, 
+Id_Reseau_M_documentation_Fred_en_lyx, 
+Id_Reseau_M_documentation_Fred_en_pdf, 
+Id_Reseau_M_documentation_Alix_en_pdf, 
 Id_Reseau_N_N, 
 Id_Reseau_N_verbose, 
 Id_Reseau_C_opt_sp, 
@@ -70,8 +71,9 @@ Com::Com(Reseau *pReseau)
 	AddFrame(fMB, fLH_TX);
 
     TGPopupMenu *f_Help = fMB->AddPopup("Help");
-    f_Help ->AddEntry("spins-reseau.lyx",Id_Reseau_M_documentation_en_lyx);
-    f_Help ->AddEntry("spins-reseau.pdf",Id_Reseau_M_documentation_en_pdf);
+    f_Help ->AddEntry("spins-reseau.lyx",Id_Reseau_M_documentation_Fred_en_lyx);
+    f_Help ->AddEntry("spins-reseau.pdf",Id_Reseau_M_documentation_Fred_en_pdf);
+    f_Help ->AddEntry("curvature.pdf",Id_Reseau_M_documentation_Alix_en_pdf);
     f_Help -> Associate(this);
 
 
@@ -241,16 +243,23 @@ Bool_t Com::ProcessMessage(Long_t msg, Long_t p1, Long_t p2)
 	int M = GET_MSG(msg), S=GET_SUBMSG(msg);
 	//cout<<"Process_Message:  M = "<<M<<"  S = "<<S<<"  p1="<<p1<<"  p2="<<p2<<endl;
 //-- M: Menu
-    if(M==1 && S==1 && p1== Id_Reseau_M_documentation_en_lyx )
+    if(M==1 && S==1 && p1== Id_Reseau_M_documentation_Fred_en_lyx )
     {
-         p_Reseau->documentation_en_lyx();
+         p_Reseau->documentation_Fred_en_lyx();
          p_com->Met_a_jour();
     }
 
 //-- M: Menu
-    if(M==1 && S==1 && p1== Id_Reseau_M_documentation_en_pdf )
+    if(M==1 && S==1 && p1== Id_Reseau_M_documentation_Fred_en_pdf )
     {
-         p_Reseau->documentation_en_pdf();
+         p_Reseau->documentation_Fred_en_pdf();
+         p_com->Met_a_jour();
+    }
+
+//-- M: Menu
+    if(M==1 && S==1 && p1== Id_Reseau_M_documentation_Alix_en_pdf )
+    {
+         p_Reseau->documentation_Alix_en_pdf();
          p_com->Met_a_jour();
     }
 

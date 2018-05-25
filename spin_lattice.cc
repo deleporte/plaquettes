@@ -484,8 +484,14 @@ void Reseau::Dynamics_testing()
   generate_C(SIZE,0.1,1.1,Cr);
   generate_C(SIZE,0.1,1.1,Ci);
   Cc=Cr+I_*Ci;
-  H.zeros(4,4);
-  H(0,0)=1;
+  cout<<Cc<<endl;
+  Ising_transverse(0.5,H);
 
-  oneStep(Cc,H,0.001);
+  for(int i=0; i<100; i++){
+    oneStep(Cc,H,0.001);
+    cout<<Cc<<endl;
+    if(!Cc.is_finite()){
+      break;
+    }
+  }
 }

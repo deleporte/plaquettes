@@ -14,7 +14,83 @@ using namespace arma;
 
 #define DESCENT 1
 
+void heis_ferro(cx_mat& H){
+  H.zeros(4,4);
+  H(0,0)=-1.;  //<00|00>
+  H(1,1)=1.;   //<01|01>
+  H(2,2)=1.;   //<10|10>
+  H(3,3)=-1.;  //<11|11>
 
+  H(1,2)=-2.;   //<01|10>
+  H(2,1)=-2.;
+}
+
+void heis_antiferro(cx_mat& H){
+  heis_ferro(H);
+  H=-H;
+}
+
+void XXZ(double J, cx_mat& H){
+  H.zeros(4,4);
+  H(0,0)=-J;
+  H(1,1)=J;
+  H(2,2)=J;
+  H(3,3)=-J;
+
+  H(1,2)=2.;   //<01|10>
+  H(2,1)=2.;
+}
+
+void Ising_transverse(double J, cx_mat& H){
+  H.zeros(4,4);
+  H(0,0)=-1;
+  H(1,1)=1;
+  H(2,2)=1;
+  H(3,3)=-1;
+
+  H(0,1)=J;   //<00|01>
+  H(1,0)=J;
+  H(0,2)=J;   //<00|10>
+  H(2,0)=J;
+  H(3,1)=J;   //<11|01>
+  H(1,3)=J;
+  H(3,2)=J;   //<11|10>
+  H(2,3)=J;
+}
+
+void J1J2(double J, double J2, cx_mat& H){
+  H.zeros(8,8);
+  H(0,0)=J;  //<000|000>
+  H(1,1)=-J;   //<001|001>
+  H(2,2)=-J;   //<010|010>
+  H(3,3)=J;  //<011|011>
+
+  H(1,2)=2.*J;   //<001|010>
+  H(2,1)=2.*J;
+
+  H(4,4)=J;  //<100|100>
+  H(5,5)=-J;   //<101|101>
+  H(6,6)=-J;   //<110|110>
+  H(7,7)=J;  //<111|111>
+
+  H(5,6)=2.*J;   //<101|110>
+  H(6,5)=2.*J;
+
+  H(0,0)+=J2;  //<000|000>
+  H(1,1)-=J2;  //<001|001>
+  H(2,2)+=J2;  //<010|010>
+  H(3,3)-=J2;  //<011|011>
+  H(4,4)-=J2;  //<100|100>
+  H(5,5)+=J2;  //<101|101>
+  H(6,6)-=J2;  //<110|110>
+  H(7,7)+=J2;  //<111|111>
+
+  H(4,1)=2*J2; //<100|001>
+  H(1,4)=2*J2;
+  H(6,3)=2*J2; //<110|011>
+  H(3,6)=2*J2;
+}
+  
 void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& F){
 //double* Cr, double* Ci, int dim, double* eigvr, double* eigvi, double* eigveleft, double* eigveright, double* ham, int hamdim){
   //double* F;

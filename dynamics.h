@@ -4,6 +4,16 @@
 using namespace std;
 using namespace arma;
 
+void heis_ferro(cx_mat&);
+
+void heis_antiferro(cx_mat&);
+
+void XXZ(double, cx_mat&);
+
+void Ising_transverse(double, cx_mat&);
+
+void J1J2(double, double, cx_mat&);
+
 void force(cx_vec&, cx_vec&, cx_mat&, cx_mat&, cx_mat&, cx_vec&);
 /*
 
