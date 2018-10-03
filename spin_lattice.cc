@@ -485,13 +485,15 @@ void Reseau::Dynamics_testing()
   generate_C(SIZE,0.1,1.1,Ci);
   Cc=Cr+I_*Ci;
   cout<<Cc<<endl;
-  Ising_transverse(0.5,H);
-
-  for(int i=0; i<100; i++){
-    oneStep(Cc,H,0.001);
-    cout<<Cc<<endl;
+  //Ising_transverse(0.5,H);
+  Ising_transverse(0.25,H);
+  
+  for(int i=0; i<1000; i++){
+      oneStep(Cc,H,0.01);
+    //cout<<"Cc at time "<<i<<endl<<Cc<<endl;
     if(!Cc.is_finite()){
       break;
     }
   }
+  cout<<"Final Cc"<<endl<<Cc<<endl;
 }

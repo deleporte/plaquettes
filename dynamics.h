@@ -14,7 +14,7 @@ void Ising_transverse(double, cx_mat&);
 
 void J1J2(double, double, cx_mat&);
 
-void force(cx_vec&, cx_vec&, cx_mat&, cx_mat&, cx_mat&, cx_vec&);
+void exact_force(cx_vec&, cx_vec&, cx_mat&, cx_mat&, cx_mat&, cx_vec&);
 /*
 
 Inputs
@@ -29,6 +29,10 @@ Outputs:
 
 Code status: nothing
 */
+
+void heuristic_force(cx_vec&, cx_vec&, cx_mat&, cx_mat&, cx_mat&, cx_vec&);
+
+void force(cx_vec&, cx_vec&, cx_mat&, cx_mat&, cx_mat&, cx_vec&);
 
 double meanval(cx_vec&, cx_vec&, cx_mat&, cx_mat&, cx_mat&);
 /*

@@ -21,8 +21,8 @@ void heis_ferro(cx_mat& H){
   H(2,2)=1.;   //<10|10>
   H(3,3)=-1.;  //<11|11>
 
-  H(1,2)=-2.;   //<01|10>
-  H(2,1)=-2.;
+  H(1,2)=-2;   //<01|10>
+  H(2,1)=-2;
 }
 
 void heis_antiferro(cx_mat& H){
@@ -91,13 +91,13 @@ void J1J2(double J, double J2, cx_mat& H){
   H(3,6)=2*J2;
 }
   
-void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& F){
+void exact_force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& F){
 //double* Cr, double* Ci, int dim, double* eigvr, double* eigvi, double* eigveleft, double* eigveright, double* ham, int hamdim){
   //double* F;
   uvec indices=sort_index(abs(w),"descend");
   int i,j,k,l;
   vec deq_m;
-  vec eq_m=abs(ver.col(indices(0)));
+  vec eq_m=abs(vel.col(indices(0)));
   //double tvalr,tvali,ttvalr,ttvali;
   complex<double> tval;
   vec Cnorm=abs(C)%abs(C);
@@ -124,6 +124,7 @@ void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& 
   for(j=0; j<dim; j++){
     eq_m[j]/=norm;
   }
+  //cout<<eq_m<<endl;
   //compute the double equilibrium measure
   for(i=0; i<dim*dim*sqrthamdim/4; i++){
     deq_m(i)=eq_m(i/(dim*sqrthamdim/4));
@@ -139,8 +140,8 @@ void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& 
       tval*=ham[j*sqrthamdim+(i/(dim/2))%sqrthamdim];
       //tvali=0;
       l=i%(dim/2)+j*dim/2+(i/(dim*sqrthamdim/2))*(dim*sqrthamdim/2);
-      for(k=1; k<=dim*sqrthamdim/4; k*=2){
-	tval=tval*C((l/k)%dim)/C((i/k)%dim);
+      for(k=1; k<dim*sqrthamdim/4; k*=2){
+	tval=tval*conj(C((l/k)%dim)/C((i/k)%dim));
 	//ttvalr=tvalr*Cr[(l/k)%dim]-tvali*Ci[(l/k)%dim];
 	//ttvali=tvalr*Ci[(l/k)%dim]+tvali*Cr[(l/k)%dim];
 	//tvalr=ttvalr;
@@ -156,8 +157,8 @@ void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& 
 	if(k!=indices(0)){
 	  if(1){
 	    for(l=0; l<dim; l++){
-	      F(l)+=tval*w(k)/(1.-w(k))*vel(l,k)*ver(k,(i/(dim*sqrthamdim/4)));
-	      F(l)+=tval*w(k)/(1.-w(k))*vel((i%dim),k)*ver(k,l)*eq_m(i%dim)/eq_m(l);
+	      F(l)+=tval/(1.-w(k))*vel(l,k)*ver(k,(i/(dim*sqrthamdim/4)));
+	      F(l)+=tval*w(k)/(1.-w(k))*vel((i/(dim*sqrthamdim/4)),k)*ver(k,l)/eq_m(i/(dim*sqrthamdim/4))*eq_m(l);
 	    }
 	    //for(l=0; l<dim; l++){
 	    //F[l+dim]+=tvali*eigvr[k]/(1-eigvr[k])*eigveleft[l*dim+k]
@@ -209,9 +210,37 @@ void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& 
       }
     }
   }
+  //F=conj(F);
     //return F;  
 }
-  
+
+void heuristic_force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& F){
+  int dim=C.size();
+  int i;
+  cx_vec wt,Ct;
+  cx_mat velt, vert;
+  vec Cnorm;
+  mat T;
+  double refval=meanval(C,w,vel,ver,ham);
+  double valt;
+  F.zeros(dim);
+  Ct=C;
+  for(i=0; i<dim; i++){
+    Ct[i]*=1.00001;
+    Cnorm=abs(Ct)%abs(Ct);
+    diag(Cnorm,wt,velt,vert,T);
+    F[i]=(meanval(Ct,wt,velt,vert,ham)-refval)*10000.;
+    Ct[i]=C[i]*(complex<double>(0,1))*1.00001;
+    Cnorm=abs(Ct)%abs(Ct);
+    diag(Cnorm,wt,velt,vert,T);
+    F[i]-=(complex<double>(0,1))*(meanval(Ct,wt,velt,vert,ham)-refval)*10000.;
+    Ct[i]=C[i];
+  }
+}
+
+void force(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham, cx_vec& F){
+  exact_force(C,w,vel,ver,ham,F);
+}
   
 
 double meanval(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham){
@@ -258,7 +287,7 @@ double meanval(cx_vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, cx_mat& ham){
       //tvali=0;
       l=i%(dim/2)+j*dim/2+(i/(dim*sqrthamdim/2))*(dim*sqrthamdim/2);
       for(k=1; k<=dim*sqrthamdim/4; k*=2){
-	tval=tval*C((l/k)%dim)/C((i/k)%dim);
+	tval*=C((l/k)%dim)/C((i/k)%dim);
 	// ttvalr=tvalr*Cr[(l/k)%dim]-tvali*Ci[(l/k)%dim];
 	// ttvali=tvalr*Ci[(l/k)%dim]+tvali*Cr[(l/k)%dim];
 	// tvalr=ttvalr;
@@ -281,7 +310,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //We must take large steps bc of computation time
   //We will use RK4 algorithm
   //double* Gred,Cnorm,k1,k2,k3,k4,kred,F,Ctr,Cti,U,V,UV,Fred;
-  mat Gred;
+  mat Gred,Gredinv;
   vec Cnorm;
   cx_vec k1,k2,k3,k4,kred,F,Ct,Fred,w;
   //double* k2=NULL;
@@ -326,7 +355,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //eigveleft=malloc(Cdim*Cdim*sizeof(double));
   //eigveright=malloc(Cdim*Cdim*sizeof(double));
   //I - Computation of k1
-  printf("k1\n");
+  //printf("k1\n");
   //I.1 Compute the reduced curvature and its projected inverse
   Cnorm=abs(C)%abs(C);
   //Cnorm=malloc(Cdim*sizeof(double));
@@ -346,7 +375,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   if(!Gred.is_finite()){
     cout<<"Nan error in curv for k1."<<endl;
   }
-  Gred=inv_sympd(Gred);
+  if(!inv_sympd(Gredinv,Gred)){cout<<"Gred is singular:"<<endl<<Gred<<"T="<<endl<<T<<"w="<<endl<<w<<"vel="<<endl<<vel<<"ver="<<endl<<ver<<endl;}
   //cholInv(Gred,Cdim/2);
   // for(i=0; i<Cdim*Cdim/4; i++){
   //   if(Gred[i]!=Gred[i]){
@@ -355,7 +384,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   //   printf("%lf\n",Gred[i]);
   // }
-  if(!Gred.is_finite()){
+  if(!Gredinv.is_finite()){
     cout<<"Nan error in inverse curv for k1."<<endl;
   }
   //I.2 Compute the force in the given basis
@@ -393,7 +422,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   
   //free(F);
   //I.3 Compute the element of displacement
-  kred=Gred*Fred;
+  kred=Gredinv*Fred;
   // kred=malloc(Cdim*sizeof(double));
   // for(i=0; i<Cdim/2; i++){
   //   kred[i]=0;
@@ -433,7 +462,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   
   //free(kred);
   //II - Computation of k2
-  printf("k2\n");
+  //printf("k2\n");
   //II.1 : computation of the new position
   if(!DESCENT){
     Ct=C+C%(step/2.*(complex<double>(0,1))*k1);
@@ -476,7 +505,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   if(!Gred.is_finite()){
     cout<<"Nan error in curv for k2."<<endl;
   }
-  Gred=inv_sympd(Gred);
+  if(!inv_sympd(Gredinv,Gred)){cout<<"Gred is singular:"<<endl<<Gred<<"T="<<endl<<T<<"w="<<endl<<w<<"vel="<<endl<<vel<<"ver="<<endl<<ver<<endl;}
   //cholInv(Gred,Cdim/2);
   // for(i=0; i<Cdim*Cdim/4; i++){
   //   if(Gred[i]!=Gred[i]){
@@ -521,7 +550,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   // }
   //II.4 Compute the element of displacement
-  kred=Gred*Fred;
+  kred=Gredinv*Fred;
   // kred=malloc(Cdim*sizeof(double));
   // for(i=0; i<Cdim/2; i++){
   //   kred[i]=0;
@@ -562,7 +591,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //free(kred);
 
   //III - Computation of k3
-  printf("k3\n");
+  //printf("k3\n");
   //III.1 : computation of the new position
   if(!DESCENT){
     Ct=C+C%(step/2.*(complex<double>(0,1))*k2);
@@ -601,7 +630,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   if(!Gred.is_finite()){
     cout<<"Nan error in curv for k3."<<endl;
   }
-  Gred=inv_sympd(Gred);
+  if(!inv_sympd(Gredinv,Gred)){cout<<"Gred is singular:"<<endl<<Gred<<"T="<<endl<<T<<"w="<<endl<<w<<"vel="<<endl<<vel<<"ver="<<endl<<ver<<endl;}
   //cholInv(Gred,Cdim/2);
   // for(i=0; i<Cdim*Cdim/4; i++){
   //   if(Gred[i]!=Gred[i]){
@@ -646,7 +675,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   // }
   //III.4 Compute the element of displacement
-  kred=Gred*Fred;
+  kred=Gredinv*Fred;
   // kred=malloc(Cdim*sizeof(double));
   // for(i=0; i<Cdim/2; i++){
   //   kred[i]=0;
@@ -686,7 +715,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   
   //free(kred);
   //IIII - Computation of k4
-  printf("k4\n");
+  //printf("k4\n");
   //IIII.1 : computation of the new position
   if(!DESCENT){
     Ct=C+C%(step*(complex<double>(0,1))*k3);
@@ -728,7 +757,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   if(!Gred.is_finite()){
     cout<<"Nan error in curv for k4."<<endl;
   }
-  Gred=inv_sympd(Gred);
+  if(!inv_sympd(Gredinv,Gred)){cout<<"Gred is singular:"<<endl<<Gred<<"T="<<endl<<T<<"w="<<endl<<w<<"vel="<<endl<<vel<<"ver="<<endl<<ver<<endl;}
   //cholInv(Gred,Cdim/2);
   // for(i=0; i<Cdim*Cdim/4; i++){
   //   if(Gred[i]!=Gred[i]){
@@ -773,7 +802,7 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   //   }
   // }
   //IIII.4 Compute the element of displacement
-  kred=Gred*Fred;
+  kred=Gredinv*Fred;
   // kred=malloc(Cdim*sizeof(double));
   // for(i=0; i<Cdim/2; i++){
   //   kred[i]=0;
@@ -834,6 +863,8 @@ void oneStep(cx_vec& C, cx_mat& ham, double step){
   // }
   //VI - Renormalize
   C=(1./C(0))*C;
+  //cout<<C<<endl;
+  cout<<meanval(C,w,vel,ver,ham)<<endl;
   // for(i=1; i<Cdim; i++){
   //   tvalr=(Cr[i]*Cr[0]+Ci[i]*Ci[0])/(Cr[0]*Cr[0]+Ci[0]*Ci[0]);
   //   tvali=(Ci[i]*Cr[0]-Cr[i]*Ci[0])/(Cr[0]*Cr[0]+Ci[0]*Ci[0]);

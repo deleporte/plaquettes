@@ -40,19 +40,29 @@ void Markov(vec& C, mat& T){
 void diag(vec& C, cx_vec& w, cx_mat& vel, cx_mat& ver, mat& T)
 {
   Markov(C,T); //computing Markov chain
-  //cout<<"Markov matrix computed"<<endl;
+  vec filled_ones;
+  int count=0;
+
+  //cout<<"Markov chain: "<<T<<endl;
   eig_gen(w,vel,T); //eigenvalues and eigenvectors
-  //uvec indices=sort_index(abs(w),"descend"); //sort eigenvalues according to their abs value
-  //w=w(indices);
-  //ver=ver.cols(indices); //sort right eigenvectors accordingly
-  //cout<<det(vel)<<endl;
+  for(int i=0; i<C.size(); i++){  //force small eigenvectors
+    if(abs(w(i))<0.000000000001){
+      w(i)=0;
+      for(int j=0; j<C.size(); j++){
+	vel(j,i)=0;
+      }
+      vel(count,i)=1;
+      vel(count+C.size()/2,i)=-1;
+      count++;
+    }
+  }
   if(!inv(ver,vel)){
     cout<<"Error while inverting eigenmatrix of the Markov chain"<<endl;
     cout<<"Determinant: "<<real(det(vel))<<endl;
+    cout<<"spectrum: "<<w<<endl;
+    cout<<"T Matrix: "<<T<<endl;
   }
   //cout<<"Diagcheck:"<<vel*diagmat(w)*ver-T<<endl;
-  //eigvals(T,dim,wr,wi,vel,ver); //à changer pour utiliser plutot armadillo
-  //return T;
 }
 
 void curvature(cx_vec& w, cx_mat& vel, cx_mat& ver, mat& G){
@@ -283,4 +293,7 @@ void reducedCurvature(cx_vec& w, cx_mat& vel, cx_mat& ver, mat& Gred){
   // free(UVG);
   Gred=U*(V.t())*G*V*(U.t());
   //Gred=G;
+
+  //a test
+  //Gred=eye(dim/2,dim/2);
 }
